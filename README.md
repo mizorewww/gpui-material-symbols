@@ -28,20 +28,21 @@ standard icon slot.
 The `showcase` example: all three styles in Kit `Button`s, and the continuous
 fill axis.
 
-<img src="docs/screenshots/showcase.png" alt="Showcase example: Kit buttons in three styles and a row of hearts with increasing fill" width="420">
+<img src="docs/screenshots/showcase.png" alt="Showcase example: Kit buttons in three styles, a row of hearts with increasing fill, and a button with an embedded SVG icon" width="420">
 
-The `material_symbols` example: a native GPUI icon browser modeled on Google
-Fonts Icons. Search the whole catalog, adjust all four axes, copy the Rust
-code, and export SVG or PNG.
+The `material_symbols` example: a native GPUI icon browser built with
+[gpui-kit-material](https://github.com/mizorewww/gpui-kit-material). Search
+the whole catalog, adjust the style and all four axes, export SVG or PNG, and
+copy the matching Rust code. It follows the system's light or dark theme.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/material-symbols-dark.png">
-  <img src="docs/screenshots/material-symbols-light.png" alt="Icon browser: customization sidebar, search bar and a grid of UI action icons">
+  <img src="docs/screenshots/material-symbols-light.png" alt="Icon browser: app bar with search and sort, a toolbar for style and axes, and a grid of UI action icons">
 </picture>
 
 | Icon details | Search |
 | --- | --- |
-| ![Details sheet for the Search icon with export buttons and generated GPUI code](docs/screenshots/material-symbols-detail.png) | ![Search results for "home"](docs/screenshots/material-symbols-search.png) |
+| ![Details panel for the Search icon with export buttons and generated Rust code](docs/screenshots/material-symbols-detail.png) | ![Search results for "home"](docs/screenshots/material-symbols-search.png) |
 
 ## Installation
 

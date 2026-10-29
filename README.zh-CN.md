@@ -22,19 +22,20 @@ Material Symbols：4,359 个图标名称，Outlined / Rounded / Sharp 三种风�
 
 `showcase` 示例：Kit `Button` 中的三种风格，以及连续变化的填充轴。
 
-<img src="docs/screenshots/showcase.png" alt="Showcase 示例：三种风格的 Kit 按钮，以及填充逐渐增加的一排心形图标" width="420">
+<img src="docs/screenshots/showcase.png" alt="Showcase 示例：三种风格的 Kit 按钮、填充逐渐增加的一排心形图标，以及使用内嵌 SVG 图标的按钮" width="420">
 
-`material_symbols` 示例：仿 Google Fonts Icons 的原生 GPUI 图标浏览器，可搜索全部图标、调节四个轴、
-复制 Rust 代码并导出 SVG/PNG。
+`material_symbols` 示例：基于 [gpui-kit-material](https://github.com/mizorewww/gpui-kit-material)
+的原生 GPUI 图标浏览器，可搜索全部图标、切换风格并调节四个轴、导出 SVG/PNG，以及复制对应的 Rust 代码。
+主题跟随系统的浅色或深色模式。
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/material-symbols-dark.png">
-  <img src="docs/screenshots/material-symbols-light.png" alt="图标浏览器：自定义侧栏、搜索栏和 UI 操作图标网格">
+  <img src="docs/screenshots/material-symbols-light.png" alt="图标浏览器：带搜索和排序的标题栏、风格与轴的工具栏，以及 UI 操作图标网格">
 </picture>
 
 | 图标详情 | 搜索 |
 | --- | --- |
-| ![Search 图标的详情面板，包含导出按钮和生成的 GPUI 代码](docs/screenshots/material-symbols-detail.png) | ![搜索 “home” 的结果](docs/screenshots/material-symbols-search.png) |
+| ![Search 图标的详情面板，包含导出按钮和生成的 Rust 代码](docs/screenshots/material-symbols-detail.png) | ![搜索 “home” 的结果](docs/screenshots/material-symbols-search.png) |
 
 ## 安装
 
