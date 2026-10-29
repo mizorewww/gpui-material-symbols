@@ -10,7 +10,7 @@ cargo run --no-default-features --features material-browser --example material_s
 
 ![Icon browser in the light theme](screenshots/material-symbols-light.png)
 
-[Dark theme](screenshots/material-symbols-dark.png) · [Details](screenshots/material-symbols-detail.png) · [Search](screenshots/material-symbols-search.png)
+[Dark theme](screenshots/material-symbols-dark.png) · [Details](screenshots/material-symbols-detail.png) · [Details, dark](screenshots/material-symbols-detail-dark.png) · [Search](screenshots/material-symbols-search.png)
 
 ## Features
 
@@ -18,9 +18,11 @@ cargo run --no-default-features --features material-browser --example material_s
   that Google Fonts' public metadata does not list (under Other).
 - Search by name or tag, sorted by popularity or name.
 - Outlined, Rounded and Sharp, with fill, weight, grade and optical size.
-- A details panel with name, code point, category and tags; SVG and PNG export
-  at a chosen size and color; and copyable Rust that reproduces the selection.
-- Light and dark themes, starting from the system appearance.
+- A details panel beside the grid with name, code point, category and tags;
+  SVG and PNG export at a chosen size and color, previewed on a white canvas;
+  and copyable Rust that reproduces the selection.
+- Light and dark themes that follow the system appearance until you choose
+  one with the theme button.
 - The app bar is the window's title bar, drawn in the app's own colors: macOS
   keeps its traffic lights inside it, Windows and Linux get the kit's caption
   buttons, and dragging or double-clicking it moves or zooms the window.
@@ -30,9 +32,12 @@ publish; the browser never substitutes a different variant.
 
 ## Components
 
-Every control comes from `gpui-kit-material`: the search field, connected
-button groups (style, sort), switch, sliders, buttons, side sheet, caption
-buttons and title-bar controls. Behavior and accessibility come from GPUI Base.
+The search field, connected button groups (style, sort), switch, sliders,
+buttons, side sheet, caption buttons and `title_bar_control` come from
+`gpui-kit-material`; behavior and accessibility come from GPUI Base. Two
+pieces are still written in this example and should move to the kit: the
+status snackbar, and the app bar's window chrome (drag-to-move, double-click
+zoom and the traffic-light inset).
 
 ## Verification and captures
 
@@ -42,13 +47,16 @@ cargo test --no-default-features --features material-browser --example material_
 cargo run --no-default-features --features material-browser --example material_symbols -- --capture target/captures
 ```
 
-The capture command renders the light, dark, details and search states through
-GPUI's native headless renderer; on macOS this needs a Metal device. Headless
-captures show the window content only, without the system's traffic lights.
-Interaction tests dispatch real clicks and input to open and close details,
-change the sort order, search with no results and clear the search, and check
-that resizing keeps the scroll position. Export tests decode the PNG and check
-its dimensions and pixel colors.
+The capture command renders the light, dark, light and dark details, and
+search states through GPUI's native headless renderer; on macOS this needs a
+Metal device. Headless captures show the window content only, without the
+system's traffic lights. Interaction tests dispatch real clicks and input:
+opening and closing details, choosing the A–Z sort, switching style and fill,
+toggling the theme, searching with no results and clearing the search. They
+also check that only empty app-bar space starts a window drag, that the open
+details sheet takes columns from the grid, and that resizing keeps the scroll
+position. Export tests decode the PNG and check its dimensions and pixel
+colors.
 
 ## Data
 
