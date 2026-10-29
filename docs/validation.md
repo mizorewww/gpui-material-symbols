@@ -1,21 +1,35 @@
-# Validation record
+# Validation record — Longbridge GPUI Kit main
 
-Validated locally on macOS on 2026-10-29 with rustc 1.99.1 and Cargo 1.99.1.
+Validated locally on macOS on 2026-10-29 using rustc/Cargo 1.99.1.
+This replaces the earlier validation against an unrelated similarly named toolkit.
 
-| Check | Result |
+Target: https://github.com/longbridge/gpui-kit, branch `main`, commit
+`d983af26269fca2200600aced3e3f03849e60749` (also confirmed against remote main).
+Kit's own backend is `gpui-pre 0.3.10`; no competing GPUI distribution is present.
+
+| Executed check | Result |
 | --- | --- |
-| `python3 scripts/sync_assets.py --verify` | All pinned upstream asset SHA-256 hashes match |
-| `cargo fmt --all -- --check` | Passed |
-| `git diff --check` | Passed |
-| `cargo test --no-default-features` (catalog suite) | 7 tests passed; 51,648 font SVG generations and all 27,720 supplemental variants |
-| `cargo test --no-default-features --test rendering` | Passed; six raster comparisons against official SVG fixtures |
-| `cargo test --test integration` | Passed with the pinned GPUI 1.18.0 dependency; fallback resources and path errors verified |
-| `cargo check --features showcase --example showcase` | Passed with GPUiKit 0.9.0 and GPUI 1.18.0 |
-| `cargo clippy --all-targets --all-features -- -D warnings` | Passed |
-| `cargo build --features showcase --example showcase` | Passed, including native linking |
-| Native showcase smoke check | Executable launched, stayed alive for five seconds, emitted no stderr, then was terminated by the check |
-| GitHub repository | `private: true`, default branch `main`, detected license `Apache-2.0` |
+| `python3 scripts/sync_assets.py --verify` | All resource SHA-256 values match; Google master still matches the pinned snapshot |
+| `cargo fmt --all -- --check` and `git diff --check` | Passed |
+| `cargo check --locked --no-default-features --all-targets` | Passed; standalone SVG functionality remains independent of Kit |
+| `cargo test --locked --all-features --tests` | 10 tests passed: 7 catalog, 2 Longbridge integration, 1 raster comparison |
+| `cargo check --locked --features showcase --example showcase` | Passed against Longbridge main |
+| `cargo clippy --locked --all-targets --all-features -- -D warnings` | Passed |
+| `cargo build --locked --features showcase --example showcase` | Passed, including native linking |
+| Native showcase smoke check | Launched, remained alive for five seconds, no stderr, then terminated by the check |
+| Dependency graph audit | `gpui-kit` and its component/assets crates come from the same main commit, with `gpui-pre 0.3.10` |
 
-The native smoke check verifies startup, not an exhaustive manual interaction/accessibility review. Pixel comparisons independently check actual icon geometry and placement. The core and runtime integration tests do not require a display server.
+Coverage was rerun in this corrected build: all 4,304 variable names × three
+styles × four representative axis sets (51,648 SVG generations), all 27,720
+supplemental SVG variants, and the union of 4,359 names. Six official raster
+fixtures verify shape and placement.
 
-GitHub Actions has not run: the authenticated OAuth token lacks `workflow` scope. The ready-to-use workflow is retained in `docs/ci.yml` rather than the restricted workflow directory. The reported results above are local results.
+The integration tests exercise Kit's `IconNamed`, conversion into component
+`Icon`, `Button::icon`, `PopupMenuItem::icon`, explicit `.component()` and
+`.embedded()`, and composition with real `gpui_kit::assets::Assets`.
+The native smoke check verifies startup, not exhaustive manual interaction or
+accessibility review.
+
+GitHub Actions has not run. The authenticated token still lacks `workflow`
+scope; the usable workflow remains in `docs/ci.yml` until authorization completes.
+All results reported here are local results.

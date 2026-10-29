@@ -1,6 +1,6 @@
 # gpui-material-symbols
 
-Google Material Symbols 的完整离线 Rust 图标库，直接对接 [gpuikit](https://github.com/iamnbutler/gpuikit) 的 GPUI `Svg` 接口。Apache-2.0。
+Google Material Symbols 的完整离线 Rust 图标库，直接对接 [Longbridge GPUI Kit](https://github.com/longbridge/gpui-kit) **main** 的 `IconNamed` / `component::Icon` 接口。Apache-2.0。
 
 ## 覆盖范围
 
@@ -26,48 +26,53 @@ Google Material Symbols 的完整离线 Rust 图标库，直接对接 [gpuikit](
 ```toml
 [dependencies]
 gpui-material-symbols = { git = "https://github.com/mizorewww/gpui-material-symbols" }
-gpuikit = "0.9"
-gpui = { package = "gpui-unofficial", version = "=1.18.0" }
+gpui-kit = { git = "https://github.com/longbridge/gpui-kit", branch = "main" }
 ```
 
-本库使用 GPUiKit 同源的 `gpui-unofficial` 包，不与 crates.io 上独立的 `gpui` 包混用。为兼容 GPUiKit 0.9，本库固定 `gpui-unofficial =1.18.0`；更新 GPUI 时需同步验证 GPUiKit。`Cargo.lock` 记录实际验证依赖。生产应用可将 Git 依赖固定到具体 `rev`。
+本库直接依赖 `longbridge/gpui-kit` 的 `main` 分支，由 Kit 管理匹配的 GPUI 后端；应用无需单独列出 GPUI。`Cargo.lock` 固定本次验证的主线提交。运行 `cargo update -p gpui-kit` 更新主线，再执行下面的验证命令。
 
-## GPUiKit 集成
+库也通过 `gpui_material_symbols::kit` 重导出同一 Kit，因此可以只声明本库依赖，避免引入不同来源或不同提交的 Kit 类型。
 
-在应用启动时组合资源源，让 GPUiKit 自带的字体和 Radix 图标继续可用：
+## Longbridge GPUI Kit 集成
 
-```rust,ignore
-use gpui_material_symbols::MaterialSymbols;
+应用启动时组合资源，保留 Kit 内置图标：
 
-Application::with_platform(gpui_platform::current_platform(false))
-    .with_assets(MaterialSymbols.with_fallback(gpuikit::assets()))
+```rust,no_run
+use gpui_material_symbols::{kit, MaterialSymbols};
+
+kit::application()
+    .with_assets(MaterialSymbols.with_fallback(kit::assets::Assets))
     .run(|cx| {
-        gpuikit::init(cx);
-        // 创建应用窗口……
+        kit::init(cx);
+        // 使用 kit::open_window 创建含有 Base Root 的应用窗口。
     });
 ```
 
-直接把图标交给现有 GPUiKit 组件：
+`Symbol` 和配置后的 `Icon` 都实现 Kit 的 `IconNamed`。可以直接传入按钮、菜单等标准图标槽位：
 
-```rust,ignore
-use gpui_material_symbols::{Axes, Style, Symbol};
-use gpuikit::elements::icon_button::icon_button;
+```rust
+use gpui_material_symbols::{kit, Style, Symbol};
+use kit::component::{button::Button, menu::PopupMenuItem};
 
-let favorite = Symbol::FAVORITE.icon()
-    .style(Style::Rounded)
-    .filled(true)
-    .svg();
-let button = icon_button("favorite", favorite);
-
-let custom = Symbol::HOME.icon()
-    .style(Style::Sharp)
-    .axes(Axes::new(0.5, 550.0, 25.0, 32.0)?)
-    .svg();
+let button = Button::new("favorite").icon(
+    Symbol::FAVORITE.icon().style(Style::Rounded).filled(true),
+);
+let home = Button::new("home").icon(Symbol::HOME);
+let menu = PopupMenuItem::new("Settings").icon(Symbol::SETTINGS);
 ```
 
-`.svg()` 返回原生 `gpui::Svg`，支持 GPUI 的 `Styled` 接口（如 `.size(px(24.))`、`.text_color(...)`）。视觉尺寸与光学尺寸独立，改变布局大小不会暗中改变图标形状。建议在按钮等父控件上设置可访问名称，而不是把图标名称当作面向用户的标签。
+`.component()` 返回 `kit::component::Icon`，使用 Kit 的主题、尺寸与图标路径解析机制。`.embedded()?` 直接把 SVG 数据放入组件，无需注册资源源，并立即检查是否存在指定离散变体。`.svg()` 仅在需要底层 `Svg` 元素时使用。
 
-完整、可运行示例：
+```rust
+use gpui_material_symbols::{kit, Axes, Style, Symbol};
+let custom = Symbol::HOME.icon()
+    .style(Style::Sharp)
+    .axes(Axes::new(0.5, 550.0, 25.0, 32.0).unwrap());
+let themed: kit::component::Icon = custom.component();
+let standalone: kit::component::Icon = custom.embedded().unwrap();
+```
+
+视觉尺寸与光学尺寸独立，改变布局大小不会暗中改变图标形状。建议在按钮等父控件上设置可访问名称。完整原生示例使用 Kit 的 `application`、`init`、`open_window` 和主题：
 
 ```sh
 cargo run --features showcase --example showcase
@@ -98,7 +103,7 @@ assert!(supplemental.icon().style(Style::Rounded).to_svg().is_ok());
 
 生成的常量由官方清单自动构建，不需要手工维护数千个枚举项。`codepoint(style)` 对 SVG 独有名称返回 `None`。
 
-## 不依赖 GPUI 的 SVG 导出
+## 不依赖 Kit 的 SVG 导出
 
 ```toml
 [dependencies]
