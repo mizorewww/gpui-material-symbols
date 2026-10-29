@@ -8,3 +8,7 @@ SHA-256 digests are recorded in assets/manifest.json.
 
 Material Symbols are a Google design resource. This project is an independent
 integration for Longbridge GPUI Kit and is not affiliated with or endorsed by Google.
+
+The material_symbols example additionally bundles Google Sans Flex under the
+SIL Open Font License 1.1 (examples/material_symbols/assets/OFL.txt), and the
+Google Fonts logo, a Google trademark that is not licensed under Apache-2.0.
