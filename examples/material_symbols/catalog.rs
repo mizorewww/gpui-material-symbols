@@ -7,6 +7,8 @@ pub struct Entry {
     pub category: &'static str,
     pub popularity: u32,
     pub tags: &'static str,
+    /// Lowercase name words and tags; Google's tags include "Wi-Fi", "Android", ….
+    search_text: String,
 }
 impl Entry {
     pub fn label(&self) -> String {
@@ -29,6 +31,7 @@ pub fn entries() -> Vec<Entry> {
         .map(|line| {
             let f: Vec<_> = line.split('\t').collect();
             Entry {
+                search_text: format!("{} {}", f[0].replace('_', " "), f[3]).to_lowercase(),
                 symbol: Symbol::named(f[0]).unwrap(),
                 category: f[1].split(',').next().unwrap(),
                 popularity: f[2].parse().unwrap(),
@@ -75,9 +78,8 @@ pub fn filtered(
         .enumerate()
         .filter(|(_, e)| {
             (categories.is_empty() || categories.contains(e.category))
-                && q.split_whitespace().all(|word| {
-                    e.symbol.name().replace('_', " ").contains(word) || e.tags.contains(word)
-                })
+                && q.split_whitespace()
+                    .all(|word| e.search_text.contains(word))
         })
         .map(|(i, _)| i)
         .collect();
@@ -134,6 +136,9 @@ mod tests {
         assert_eq!(e.len(), Symbol::all().len());
         let r = filtered(&e, "magnify", &BTreeSet::new(), Sort::Popular);
         assert!(r.iter().any(|i| e[*i].symbol == Symbol::SEARCH));
+        let tagged = e.iter().position(|e| e.tags.contains("Android")).unwrap();
+        let r = filtered(&e, "ANDROID", &BTreeSet::new(), Sort::Name);
+        assert!(r.contains(&tagged));
     }
     #[test]
     fn categories_and_sort_are_real() {
