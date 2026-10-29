@@ -11,6 +11,11 @@ Plex Sans (SIL OFL, `web/fonts/`), GPUI Web's default
 UI font. It renders through WebGPU; GPUI Web can fall back to WebGL 2, which
 this site has not been tested with.
 
+On load the page asks for a GitHub star in a dialog (`web/www/index.html`).
+Choosing "Star on GitHub" or "Don't show this again" stops it for that browser
+through `localStorage`; "Not now" asks again on the next visit. Where the
+browser blocks storage, the choice cannot be kept and the dialog returns.
+
 ## Build and run locally
 
 Requirements: the `wasm32-unknown-unknown` target, `wasm-bindgen-cli` 0.2.129

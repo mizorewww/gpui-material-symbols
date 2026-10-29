@@ -14,9 +14,16 @@
     <style>
       /* The browser's own canvas and ink colors, so the loading screen does
          not flash a different color before the first frame. */
-      :root { color-scheme: light dark; --bg: #edf1f7; --fg: #1b1c20; }
+      :root {
+        color-scheme: light dark;
+        --bg: #edf1f7; --fg: #202632; --muted: #626b7b;
+        --surface: #ffffff; --primary: #3968d7; --on-primary: #ffffff;
+      }
       @media (prefers-color-scheme: dark) {
-        :root { --bg: #1a1e26; --fg: #e3e3e8; }
+        :root {
+          --bg: #1a1e26; --fg: #e7eaf0; --muted: #a7afbf;
+          --surface: #20242d; --primary: #8baffb; --on-primary: #16213a;
+        }
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 100%; overflow: hidden; }
@@ -50,6 +57,42 @@
       .hint { margin-top: 4px; opacity: .7; font-size: 13px; }
       .error { pointer-events: auto; }
       .error a { color: inherit; }
+      /* A Material 3 basic dialog in the app's palette. */
+      #star {
+        margin: auto;
+        width: min(400px, calc(100% - 32px));
+        padding: 24px;
+        border: 0;
+        border-radius: 28px;
+        background: var(--surface);
+        color: var(--fg);
+        box-shadow: 0 8px 24px rgb(0 0 0 / .2);
+      }
+      #star::backdrop { background: rgb(0 0 0 / .32); }
+      #star h2 { margin-bottom: 16px; font-size: 24px; font-weight: 400; line-height: 32px; }
+      #star p { color: var(--muted); }
+      #star label { display: flex; gap: 12px; align-items: center; margin-top: 16px; cursor: pointer; }
+      #star input { width: 18px; height: 18px; accent-color: var(--primary); }
+      #star .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+      #star button, #star a.button {
+        display: inline-flex;
+        align-items: center;
+        height: 40px;
+        padding: 0 24px;
+        border: 0;
+        border-radius: 20px;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      #star button { background: none; color: var(--primary); }
+      #star a.button { background: var(--primary); color: var(--on-primary); }
+      #star button:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); }
+      #star a.button:hover { background: color-mix(in srgb, var(--on-primary) 8%, var(--primary)); }
+      #star :focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
     </style>
   </head>
   <body>
@@ -58,6 +101,15 @@
       <p>Loading Material Symbols…</p>
       <p class="hint">The full icon catalog is a one-time ~17 MB download.</p>
     </div>
+    <dialog id="star" aria-labelledby="star-title" aria-describedby="star-text">
+      <h2 id="star-title">Star on GitHub</h2>
+      <p id="star-text">This icon browser is the example app of gpui-material-symbols, every Google Material Symbol for GPUI. A star helps others find it.</p>
+      <label><input type="checkbox" id="star-never"> Don't show this again</label>
+      <div class="actions">
+        <button type="button" id="star-later" autofocus>Not now</button>
+        <a class="button" id="star-go" href="https://github.com/mizorewww/gpui-material-symbols" target="_blank" rel="noopener">Star on GitHub</a>
+      </div>
+    </dialog>
     <noscript>This icon browser needs JavaScript and WebAssembly.</noscript>
     <script type="module" src="./main.js"></script>
   </body>
