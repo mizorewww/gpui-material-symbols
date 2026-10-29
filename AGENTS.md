@@ -7,7 +7,11 @@ https://github.com/longbridge/gpui-kit, tracking its `main` branch.
 - Import the public `gpui_kit` facade and its `component` / `assets` modules.
 - Let Kit choose its matching GPUI backend; do not add a competing GPUI package.
 - Implement `IconNamed` for symbols and configured icons so standard Kit icon slots work.
-- Native examples use Kit's `application`, `init`, `open_window`, and theme.
+- The `showcase` example uses Kit's `application`, `init`, `open_window`, and theme.
+- The `material_symbols` consumer example belongs here and uses the sibling
+  `gpui-kit-material` components and its matching GPUI backend; reusable Material
+  controls belong in that sibling, never the browser itself. Keep its optional
+  dependencies behind `material-browser`, separate from the default Kit adapter.
 - On a Kit update, inspect current main APIs, run integration tests and rebuild the showcase.
 - Do not substitute a similarly named repository or reuse its compatibility results.
 

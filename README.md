@@ -150,3 +150,17 @@ cargo test --no-default-features
 可用的 GitHub Actions 配置保存在 [CI 模板](docs/ci.yml)。当前创建仓库的令牌没有 `workflow` scope，因此未启用远程 Actions；以后具备该权限时可将模板移至 `.github/workflows/ci.yml`。上述验收命令均可本地执行。
 
 参见 [调查记录](docs/research.md)。本项目代码与 Google 资源均按 Apache-2.0 分发；上游许可证保存在 `assets/LICENSE`，归属信息见 `NOTICE`。
+
+## Google Fonts Material Symbols browser
+
+The native reference browser lives in this repository and consumes reusable
+components from the sibling `gpui-kit-material`. Clone both repositories next
+to each other, then run from `gpui-material-symbols`:
+
+```sh
+cargo run --no-default-features --features material-browser --example material_symbols
+```
+
+See [the browser documentation](docs/MATERIAL_SYMBOLS.md) for features, native
+captures and tests. The `showcase` example continues to demonstrate the
+Longbridge GPUI Kit main integration.
