@@ -2297,8 +2297,6 @@ dependencies = [
 [[package]]
 name = "gpui-fast-macos"
 version = "0.1.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8e8b377d6dcbc0007e68098cb3f40bc2591a1d29526301e9572a70bb674f171"
 dependencies = [
  "accesskit",
  "accesskit_macos",
@@ -2483,7 +2481,6 @@ dependencies = [
 name = "gpui-kit-material"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "gpui-base",
  "gpui-kit",
  "gpui-kit-material-color",
@@ -2757,8 +2754,6 @@ dependencies = [
 [[package]]
 name = "gpui-pre-macos"
 version = "0.3.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e07a5e5c84f0b2160c194a1c852cc89d1942db66867938ceabcd7f763cb4386"
 dependencies = [
  "accesskit",
  "accesskit_macos",

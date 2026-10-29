@@ -74,6 +74,8 @@ gpui-kit = { path = "../gpui-kit-material/vendor/gpui-kit" }
 gpui-base = { path = "../gpui-kit-material/vendor/gpui-base" }
 
 [patch.crates-io]
+gpui-fast-macos = { path = "../gpui-kit-material/vendor/gpui-fast-macos" }
+gpui-pre-macos = { path = "../gpui-kit-material/vendor/gpui-pre-macos" }
 gpui-fast = { path = "../gpui-kit-material/vendor/gpui-fast" }
 gpui-fast-web = { path = "../gpui-kit-material/vendor/gpui-fast-web" }
 gpui-fast-apple = { path = "../gpui-kit-material/vendor/gpui-fast-apple" }
