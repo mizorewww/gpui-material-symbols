@@ -71,6 +71,13 @@ def verify(manifest):
     print(f'All upstream asset checksums and coverage verified at {manifest["revision"]}')
 
 
+def verify_or_fail(manifest):
+    try:
+        verify(manifest)
+    except (OSError, ValueError, KeyError) as error:
+        fail(f'cannot verify assets: {error!r}')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--revision', default=DEFAULT_REVISION)
@@ -79,7 +86,7 @@ def main():
     manifest_path = ASSETS / 'manifest.json'
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
     if args.verify:
-        verify(manifest)
+        verify_or_fail(manifest)
         return
     if len(args.revision) != 40 or any(c not in '0123456789abcdef' for c in args.revision):
         parser.error('--revision must be a full lowercase Git commit SHA')
