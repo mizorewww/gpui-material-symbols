@@ -1,4 +1,5 @@
-//! Complete Google Material Symbols, rendered from the official variable fonts.
+//! Complete Google Material Symbols, rendered from the official variable fonts,
+//! plus Google's discrete SVG variants for the names that have no font glyph.
 //!
 //! [`Symbol`] provides generated constants and name lookup; [`Icon`] chooses a
 //! style and continuous variation axes. With the default `gpui-kit` feature,

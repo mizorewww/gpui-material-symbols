@@ -5,6 +5,10 @@ use std::borrow::Cow;
 impl Icon {
     /// A themed Longbridge component icon, respecting Kit sizing and icon resolution.
     /// Register [`MaterialSymbols`] before rendering path-based icons.
+    ///
+    /// Path-based icons are not validated here: an SVG-only symbol with axes that
+    /// [`Icon::is_supported`] rejects loads with an error and renders empty.
+    /// Use [`Self::embedded`] to surface that error at construction time.
     pub fn component(self) -> gpui_kit::component::Icon {
         gpui_kit::component::Icon::new(self)
     }
