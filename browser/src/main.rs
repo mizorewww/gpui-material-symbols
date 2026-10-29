@@ -14,7 +14,7 @@ use gpui_base::{
     input::{InputEvent, InputState},
     slider::{SliderEvent, SliderState},
 };
-use gpui_kit_material::{icons::Assets, prelude::*, theme};
+use gpui_kit_material::{color::Scheme, icons::Assets, prelude::*, theme};
 use gpui_material_symbols::{Icon as SymbolIcon, Style, Symbol};
 use std::borrow::Cow;
 
@@ -71,7 +71,7 @@ fn symbol_svg(icon: SymbolIcon) -> Svg {
 fn glyph(symbol: Symbol, size: f32) -> Svg {
     symbol_svg(symbol.icon())
         .size(rem(size))
-        .text_color(color(ColorRole::INK))
+        .text_color(color(ColorRole::ON_SURFACE))
         .flex_shrink_0()
 }
 
@@ -95,7 +95,11 @@ fn labelled(label: &'static str, value: String, control: impl IntoElement) -> Di
                 .gap(rem(6.))
                 .child(label)
                 .when(!value.is_empty(), |e| {
-                    e.child(div().text_color(color(ColorRole::GRAY)).child(value))
+                    e.child(
+                        div()
+                            .text_color(color(ColorRole::ON_SURFACE_VARIANT))
+                            .child(value),
+                    )
                 }),
         )
         .child(control)
@@ -191,6 +195,9 @@ impl Browser {
             _subscriptions: subscriptions,
         };
         this.rebuild(cx);
+        // The text scale never changes, so set it once; this also paints the
+        // first palette without a transition.
+        theme::advance_component_theme(Scheme::from_palette(this.palette(cx)), 1., window, cx);
         this
     }
 
@@ -282,98 +289,107 @@ impl Browser {
     /// The app bar is the window's title bar, drawn by the kit's `TitleBar`
     /// on the same surface as the content.
     fn app_bar(&self, compact: bool, cx: &mut Context<Self>) -> impl IntoElement {
-        TitleBar::new("app-bar", APP_BAR)
-            .gap(rem(if compact { 4. } else { 16. }))
-            .when(!compact, |bar| bar.child(glyph(Symbol::INTERESTS, 24.)))
-            .when(!compact, |bar| {
-                bar.child(
-                    div()
-                        .flex()
-                        .flex_col()
-                        .flex_shrink_0()
-                        .child(div().text_size(rem(16.)).child("Material Symbols"))
-                        .child(
-                            div()
-                                .text_size(rem(12.))
-                                .text_color(color(ColorRole::GRAY))
-                                .child(format!("{} of {} icons", self.shown, self.entries.len())),
-                        ),
-                )
-            })
-            .child(
-                title_bar_control(
-                    div()
-                        .id("search")
-                        .flex_1()
-                        .min_w_0()
-                        .max_w(rem(640.))
-                        .mx_auto(),
-                )
-                .child(
-                    SearchField::new(&self.search)
-                        .leading(glyph(Symbol::SEARCH, 24.))
-                        .trailing(
-                            icon_button("clear-search", Symbol::CLOSE, "Clear search").on_click(
-                                cx.listener(|this, _, w, cx| {
-                                    this.search.update(cx, |s, cx| s.set_value("", w, cx));
-                                    this.rebuild(cx);
-                                    cx.notify();
-                                }),
-                            ),
-                        ),
-                ),
+        TitleBar::new(
+            "app-bar",
+            APP_BAR,
+            CaptionLabels {
+                minimize: "Minimize".into(),
+                maximize: "Maximize".into(),
+                restore: "Restore".into(),
+                close: "Close".into(),
+            },
+        )
+        .gap(rem(if compact { 4. } else { 16. }))
+        .when(!compact, |bar| bar.child(glyph(Symbol::INTERESTS, 24.)))
+        .when(!compact, |bar| {
+            bar.child(
+                div()
+                    .flex()
+                    .flex_col()
+                    .flex_shrink_0()
+                    .child(div().text_size(rem(16.)).child("Material Symbols"))
+                    .child(
+                        div()
+                            .text_size(rem(12.))
+                            .text_color(color(ColorRole::ON_SURFACE_VARIANT))
+                            .child(format!("{} of {} icons", self.shown, self.entries.len())),
+                    ),
             )
-            .when(!compact, |bar| {
-                bar.child(title_bar_control(div().child(self.sort_group(cx))))
-            })
-            .when(compact, |bar| {
-                bar.child(title_bar_control(
-                    icon_button("controls", Symbol::TUNE, "Style and axes")
-                        .when(self.controls_open, |b| {
-                            b.bg(color(ColorRole::SECONDARY_CONTAINER))
-                        })
-                        .on_click(cx.listener(|this, _, _, cx| {
-                            this.controls_open = !this.controls_open;
-                            cx.notify();
-                        })),
-                ))
-            })
-            .child(title_bar_control(
-                icon_button(
-                    "theme",
-                    if self.palette(cx) == PaletteId::Ink {
-                        Symbol::LIGHT_MODE
-                    } else {
-                        Symbol::DARK_MODE
-                    },
-                    "Toggle light and dark theme",
-                )
-                .on_click(cx.listener(|this, _, _, cx| {
-                    // An explicit choice overrides the system appearance.
-                    this.theme = if this.palette(cx) == PaletteId::Ink {
-                        Appearance::Light
-                    } else {
-                        Appearance::Dark
-                    };
-                    cx.notify();
-                })),
+        })
+        .child(
+            title_bar_control(
+                div()
+                    .id("search")
+                    .flex_1()
+                    .min_w_0()
+                    .max_w(rem(640.))
+                    .mx_auto(),
+            )
+            .child(
+                SearchField::new(&self.search)
+                    .leading(glyph(Symbol::SEARCH, 24.))
+                    .trailing(
+                        icon_button("clear-search", Symbol::CLOSE, "Clear search").on_click(
+                            cx.listener(|this, _, w, cx| {
+                                this.search.update(cx, |s, cx| s.set_value("", w, cx));
+                                this.rebuild(cx);
+                                cx.notify();
+                            }),
+                        ),
+                    ),
+            ),
+        )
+        .when(!compact, |bar| {
+            bar.child(title_bar_control(div().child(self.sort_group(cx))))
+        })
+        .when(compact, |bar| {
+            bar.child(title_bar_control(
+                icon_button("controls", Symbol::TUNE, "Style and axes")
+                    .when(self.controls_open, |b| {
+                        b.bg(color(ColorRole::SECONDARY_CONTAINER))
+                    })
+                    .on_click(cx.listener(|this, _, _, cx| {
+                        this.controls_open = !this.controls_open;
+                        cx.notify();
+                    })),
             ))
-            .when(cfg!(target_family = "wasm"), |bar| {
-                bar.child(title_bar_control(
-                    material_button("github", ButtonVariant::Tonal)
-                        .accessibility_label(format!("Source code on GitHub: {REPOSITORY}"))
-                        .child(
-                            svg()
-                                .path(GITHUB_MARK)
-                                .size(rem(18.))
-                                .text_color(color(ColorRole::ON_SECONDARY_CONTAINER))
-                                .flex_shrink_0(),
-                        )
-                        .when(!compact, |b| b.child("GitHub"))
-                        .when(compact, |b| b.w(rem(40.)).px_0())
-                        .on_click(|_, _, cx| cx.open_url(REPOSITORY)),
-                ))
-            })
+        })
+        .child(title_bar_control(
+            icon_button(
+                "theme",
+                if self.palette(cx) == PaletteId::Ink {
+                    Symbol::LIGHT_MODE
+                } else {
+                    Symbol::DARK_MODE
+                },
+                "Toggle light and dark theme",
+            )
+            .on_click(cx.listener(|this, _, _, cx| {
+                // An explicit choice overrides the system appearance.
+                this.theme = if this.palette(cx) == PaletteId::Ink {
+                    Appearance::Light
+                } else {
+                    Appearance::Dark
+                };
+                cx.notify();
+            })),
+        ))
+        .when(cfg!(target_family = "wasm"), |bar| {
+            bar.child(title_bar_control(
+                material_button("github", ButtonVariant::Tonal)
+                    .accessibility_label(format!("Source code on GitHub: {REPOSITORY}"))
+                    .child(
+                        svg()
+                            .path(GITHUB_MARK)
+                            .size(rem(18.))
+                            .text_color(color(ColorRole::ON_SECONDARY_CONTAINER))
+                            .flex_shrink_0(),
+                    )
+                    .when(!compact, |b| b.child("GitHub"))
+                    .when(compact, |b| b.w(rem(40.)).px_0())
+                    .on_click(|_, _, cx| cx.open_url(REPOSITORY)),
+            ))
+        })
     }
 
     fn sort_group(&self, cx: &mut Context<Self>) -> ConnectedButtonGroup {
@@ -415,7 +431,7 @@ impl Browser {
             .px(px(inset(compact)))
             .py(rem(12.))
             .border_b_1()
-            .border_color(color(ColorRole::HAIRLINE))
+            .border_color(color(ColorRole::OUTLINE_VARIANT))
             .child(
                 ConnectedButtonGroup::new("style", "Style")
                     .options(Style::ALL.map(|s| (s.name(), title_case(s.name()))))
@@ -469,14 +485,14 @@ impl Browser {
                 .pt(rem(20.))
                 .pb(rem(8.))
                 .text_size(rem(14.))
-                .text_color(color(ColorRole::GRAY))
+                .text_color(color(ColorRole::ON_SURFACE_VARIANT))
                 .child(category)
                 .into_any_element(),
             Row::Empty => div()
                 .py(rem(48.))
                 .flex()
                 .justify_center()
-                .text_color(color(ColorRole::GRAY))
+                .text_color(color(ColorRole::ON_SURFACE_VARIANT))
                 .child("No icons match your search.")
                 .into_any_element(),
             Row::Icons(indices) => div()
@@ -511,11 +527,11 @@ impl Browser {
             .child(if icon.is_supported() {
                 symbol_svg(icon)
                     .size(rem(36.))
-                    .text_color(color(ColorRole::INK))
+                    .text_color(color(ColorRole::ON_SURFACE))
                     .into_any_element()
             } else {
                 glyph(Symbol::BLOCK, 28.)
-                    .text_color(color(ColorRole::GRAY))
+                    .text_color(color(ColorRole::ON_SURFACE_VARIANT))
                     .into_any_element()
             })
             .child(
@@ -556,7 +572,11 @@ impl Browser {
                 .flex()
                 .justify_between()
                 .gap(rem(16.))
-                .child(div().text_color(color(ColorRole::GRAY)).child(label))
+                .child(
+                    div()
+                        .text_color(color(ColorRole::ON_SURFACE_VARIANT))
+                        .child(label),
+                )
                 .child(value)
         };
         let export_button = |id: &'static str, label: &'static str, png: bool| {
@@ -597,7 +617,7 @@ impl Browser {
                     // A fixed canvas, so the export color reads in either theme.
                     .bg(rgb(0xffffff))
                     .border_1()
-                    .border_color(color(ColorRole::HAIRLINE))
+                    .border_color(color(ColorRole::OUTLINE_VARIANT))
                     .child(if supported {
                         symbol_svg(icon)
                             .size(px(self.preview_size))
@@ -607,7 +627,7 @@ impl Browser {
                         div()
                             .px(rem(24.))
                             .text_align(TextAlign::Center)
-                            .text_color(color(ColorRole::DANGER))
+                            .text_color(color(ColorRole::ERROR))
                             .child("This SVG-only symbol has no official variant for these axes.")
                             .into_any_element()
                     }),
@@ -624,7 +644,7 @@ impl Browser {
                         facts.child(
                             div()
                                 .text_size(rem(12.))
-                                .text_color(color(ColorRole::GRAY))
+                                .text_color(color(ColorRole::ON_SURFACE_VARIANT))
                                 .line_clamp(3)
                                 .child(entry.tags),
                         )
@@ -682,7 +702,7 @@ impl Browser {
                 div()
                     .p(rem(16.))
                     .rounded(rem(12.))
-                    .bg(color(ColorRole::SURFACE_HIGH))
+                    .bg(color(ColorRole::SURFACE_CONTAINER_HIGHEST))
                     .font_family("Menlo")
                     .text_size(rem(12.))
                     .whitespace_normal()
@@ -692,9 +712,9 @@ impl Browser {
             .id("details")
             .size_full()
             .overflow_y_scroll()
-            .bg(color(ColorRole::CANVAS))
+            .bg(color(ColorRole::SURFACE_CONTAINER))
             .border_l_1()
-            .border_color(color(ColorRole::HAIRLINE))
+            .border_color(color(ColorRole::OUTLINE_VARIANT))
             .child(content)
             .into_any_element()
     }
@@ -768,8 +788,7 @@ impl Render for Browser {
             self.status = failure;
         }
         let palette = self.palette(cx);
-        theme::apply_palette(palette, window, cx);
-        theme::apply_scale(1., window);
+        theme::apply_scheme(Scheme::from_palette(palette), window, cx);
         let window_width = f32::from(window.viewport_size().width);
         let compact = window_width < COMPACT;
         let sheet_width = f32::from(rem(SHEET).to_pixels(window.rem_size()));
@@ -800,8 +819,8 @@ impl Render for Browser {
             .flex_col()
             .overflow_hidden()
             .text_size(rem(14.))
-            .bg(color(ColorRole::CANVAS))
-            .text_color(color(ColorRole::INK))
+            .bg(color(ColorRole::SURFACE_CONTAINER))
+            .text_color(color(ColorRole::ON_SURFACE))
             .child(self.app_bar(compact, cx))
             .when(!compact || self.controls_open, |root| {
                 root.child(self.toolbar(compact, cx))
