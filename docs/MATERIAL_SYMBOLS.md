@@ -1,82 +1,59 @@
 # Material Symbols browser
 
-A native GPUI reference of [Google Fonts Icons](https://fonts.google.com/icons),
-owned by `gpui-material-symbols`, using its complete catalog and reusable
-components from the sibling `gpui-kit-material` repository.
-The reference desktop viewport is 1440 × 1000 logical pixels. No WebView is used.
-
-Cargo fetches `gpui-kit-material` from Git (its `main` branch, pinned by
-`Cargo.lock`), so no sibling checkout is required:
+A native GPUI icon browser for this crate's complete catalog, built with
+components from [`gpui-kit-material`](https://github.com/mizorewww/gpui-kit-material)
+on the same `gpui-pre` backend as Longbridge GPUI Kit. No WebView is used.
 
 ```sh
 cargo run --no-default-features --features material-browser --example material_symbols
 ```
 
-The example uses this crate without its optional `gpui-kit` adapter;
-its `AssetSource` renders symbols directly into the Material kit's GPUI version. The
-symbol crate's own optional adapter follows `longbridge/gpui-kit` main.
+![Icon browser in the light theme](screenshots/material-symbols-light.png)
 
-![Native GPUI light theme](screenshots/material-symbols-light.png)
+[Dark theme](screenshots/material-symbols-dark.png) · [Details](screenshots/material-symbols-detail.png) · [Search](screenshots/material-symbols-search.png)
 
-[Dark theme](screenshots/material-symbols-dark.png) · [Details sheet](screenshots/material-symbols-detail.png) · [Search](screenshots/material-symbols-search.png)
+## Features
 
-## Interactions
+- All 4,359 names in a virtualized grid grouped by category, including names
+  that Google Fonts' public metadata does not list (under Other).
+- Search by name or tag, sorted by popularity or name.
+- Outlined, Rounded and Sharp, with fill, weight, grade and optical size.
+- A details panel with name, code point, category and tags; SVG and PNG export
+  at a chosen size and color; and copyable Rust that reproduces the selection.
+- Light and dark themes, starting from the system appearance.
+- The app bar is the window's title bar, drawn in the app's own colors: macOS
+  keeps its traffic lights inside it, Windows and Linux get the kit's caption
+  buttons, and dragging or double-clicking it moves or zooms the window.
 
-- All 4,359 catalog names, virtualized and grouped by category, including names
-  missing from Google Fonts' public search metadata (under Other).
-- Name/tag search, popularity/name sorting, category selection and reset.
-- Outlined, Rounded and Sharp; fill, weight, grade and optical-size controls.
-- Light/dark themes, collapsible filters, animated non-modal details sheet.
-- Preview size/color, SVG and PNG file export with those dimensions/colors.
-- Copyable Rust/GPUI API reflecting the selected style and all four axes.
-
-Web, Android and Apple installation tabs are replaced with GPUI instructions.
-The legacy Material Icons family is outside the Material Symbols catalog.
-SVG-only names show an explicit unavailable state for unsupported axis
-combinations; the app does not silently substitute a different icon variant.
-The metadata is a snapshot, so live popularity/new releases can change upstream.
+SVG-only names show an unavailable state for axis combinations Google does not
+publish; the browser never substitutes a different variant.
 
 ## Components
 
-The switch, slider, search field, buttons and side sheet come from
-`gpui-kit-material` (`crates/material/src/components/controls.rs`) and appear in
-that kit's `examples/gallery.rs`. The navigation rail, sort menu, filter chips,
-cards and snackbar are still drawn inline in this example and should move to
-the kit. Geometry was checked against [md3.io](https://md3.io/components):
-52 × 32 switch with 16/24 thumb, 56-high search field, pill buttons, and a standard
-side sheet. `MaterialSlider` offers the classic Google Fonts appearance and
-an expressive 16-high track with a 4 × 44 handle. Behavior and accessibility
-come from GPUI Base. Colors use semantic roles, geometry uses rems, switch/sheet
-motion uses the kit's retargetable springs and respects reduced motion.
-
-The expressive slider is the single-value variant; range sliders, tick marks and
-value bubbles are not provided by this component. The browser uses Classic.
+Every control comes from `gpui-kit-material`: the search field, connected
+button groups (style, sort), switch, sliders, buttons, side sheet, caption
+buttons and title-bar controls. Behavior and accessibility come from GPUI Base.
 
 ## Verification and captures
 
 ```sh
-cargo fmt --all --check
 cargo clippy --no-default-features --features material-browser --all-targets -- -D warnings
 cargo test --no-default-features --features material-browser --example material_symbols
-cargo run --no-default-features --features material-browser --example material_symbols -- --capture /tmp/material-symbols
+cargo run --no-default-features --features material-browser --example material_symbols -- --capture target/captures
 ```
 
-The capture command renders light, dark, details and search states through the
-native GPUI headless renderer. On macOS this requires a working Metal device.
-Interaction tests exercise actual input/click dispatch: sort selection,
-opening/closing details, empty results, clearing search and keeping the scroll
-position when the grid reflows. Export tests decode the PNG and check dimensions and pixel colors.
+The capture command renders the light, dark, details and search states through
+GPUI's native headless renderer; on macOS this needs a Metal device. Headless
+captures show the window content only, without the system's traffic lights.
+Interaction tests dispatch real clicks and input to open and close details,
+change the sort order, search with no results and clear the search, and check
+that resizing keeps the scroll position. Export tests decode the PNG and check
+its dimensions and pixel colors.
 
-## Assets and provenance
+## Data
 
-- Symbol shapes: this crate's pinned Google Material Symbols snapshot;
-  Apache 2.0, with its license retained in that repository.
+- Symbol shapes: this crate's pinned Google Material Symbols snapshot
+  (Apache-2.0).
 - Categories, tags and popularity: Google Fonts
   `https://fonts.google.com/metadata/icons?key=material_symbols&incomplete=true`,
-  fetched 2026-10-29. Refresh using `python3 scripts/update-symbol-catalog.py`.
-  Whitespace is normalized so tags cannot corrupt TSV columns.
-- Google Sans Flex: [google/fonts](https://github.com/google/fonts/tree/main/ofl/googlesansflex),
-  distributed with `assets/OFL.txt` under SIL Open Font License 1.1.
-
-This repository remains Apache 2.0; the reusable Material kit remains MIT.
-Third-party assets retain their own terms.
+  fetched 2026-10-29. Refresh with `python3 scripts/update-symbol-catalog.py`.
