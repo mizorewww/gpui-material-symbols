@@ -4,8 +4,12 @@
 //! [`Symbol`] provides generated constants and name lookup; [`Icon`] chooses a
 //! style and continuous variation axes. With the default `gpui-kit` feature,
 //! [`MaterialSymbols`] serves SVGs to GPUI and [`Icon::component`] integrates with Longbridge GPUI Kit.
+//!
+//! The default `embed-assets` feature builds the fonts and SVG pack into the
+//! binary. Without it, supply each [`Asset`] at runtime with [`Asset::provide`],
+//! for example from a web build that downloads only the styles it shows.
 
-use std::{fmt, fmt::Write, str::FromStr};
+use std::{fmt, fmt::Write, str::FromStr, sync::OnceLock};
 use ttf_parser::{Face, OutlineBuilder, Tag};
 
 #[cfg(feature = "gpui-kit")]
@@ -17,10 +21,10 @@ pub use gpui_kit as kit;
 pub use integration::{MaterialSymbols, WithMaterialSymbols};
 
 /// Compile and run the READMEs' examples as doctests.
-#[cfg(all(doctest, feature = "gpui-kit"))]
+#[cfg(all(doctest, feature = "gpui-kit", feature = "embed-assets"))]
 #[doc = include_str!("../README.md")]
 struct ReadmeDoctests;
-#[cfg(all(doctest, feature = "gpui-kit"))]
+#[cfg(all(doctest, feature = "gpui-kit", feature = "embed-assets"))]
 #[doc = include_str!("../README.zh-CN.md")]
 struct ReadmeZhCnDoctests;
 
@@ -137,12 +141,97 @@ impl Style {
         }
     }
     /// Complete embedded official variable font; never fetched at runtime.
+    /// Only with `embed-assets`; otherwise see [`Asset`].
+    #[cfg(feature = "embed-assets")]
     pub fn font_bytes(self) -> &'static [u8] {
+        Asset::Font(self).embedded()
+    }
+}
+
+/// A data file behind the symbols: each style's official variable font, and
+/// the pack of Google's SVGs for the SVG-only symbols.
+///
+/// With the default `embed-assets` feature every asset is built in. Without
+/// it, nothing is: [`Icon::to_svg`] returns [`Error::NotLoaded`] until the
+/// icon's [`Icon::required_asset`] is supplied with [`Asset::provide`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Asset {
+    /// The variable font of one style.
+    Font(Style),
+    /// Google's SVGs for the symbols without a variable-font glyph.
+    Supplemental,
+}
+
+/// Assets supplied at runtime, indexed by [`Asset::index`].
+static PROVIDED: [OnceLock<&'static [u8]>; 4] = [const { OnceLock::new() }; 4];
+
+impl Asset {
+    /// All four assets.
+    pub const ALL: [Self; 4] = [
+        Self::Font(Style::Outlined),
+        Self::Font(Style::Rounded),
+        Self::Font(Style::Sharp),
+        Self::Supplemental,
+    ];
+    fn index(self) -> usize {
         match self {
-            Self::Outlined => include_bytes!("../assets/MaterialSymbolsOutlined.ttf"),
-            Self::Rounded => include_bytes!("../assets/MaterialSymbolsRounded.ttf"),
-            Self::Sharp => include_bytes!("../assets/MaterialSymbolsSharp.ttf"),
+            Self::Font(Style::Outlined) => 0,
+            Self::Font(Style::Rounded) => 1,
+            Self::Font(Style::Sharp) => 2,
+            Self::Supplemental => 3,
         }
+    }
+    /// The file's name in this crate's `assets/` directory.
+    pub fn file_name(self) -> &'static str {
+        ASSET_FILES[self.index()].0
+    }
+    /// The file's exact length in bytes.
+    pub fn size(self) -> usize {
+        ASSET_FILES[self.index()].1
+    }
+    #[cfg(feature = "embed-assets")]
+    fn embedded(self) -> &'static [u8] {
+        match self {
+            Self::Font(Style::Outlined) => include_bytes!("../assets/MaterialSymbolsOutlined.ttf"),
+            Self::Font(Style::Rounded) => include_bytes!("../assets/MaterialSymbolsRounded.ttf"),
+            Self::Font(Style::Sharp) => include_bytes!("../assets/MaterialSymbolsSharp.ttf"),
+            Self::Supplemental => include_bytes!("../assets/supplemental.bin"),
+        }
+    }
+    /// The asset's bytes, if they are embedded or have been provided.
+    pub fn bytes(self) -> Option<&'static [u8]> {
+        #[cfg(feature = "embed-assets")]
+        return Some(self.embedded());
+        #[cfg(not(feature = "embed-assets"))]
+        PROVIDED[self.index()].get().copied()
+    }
+    /// Whether icons that need this asset can be drawn.
+    pub fn is_available(self) -> bool {
+        self.bytes().is_some()
+    }
+    /// Supply the asset's file, exactly as in this crate's `assets/`
+    /// directory. Fonts must parse with all four variation axes, and every
+    /// file must have its recorded length; this guards against the wrong
+    /// file, not tampering, so load assets from a source you trust. The bytes are kept for the rest of
+    /// the program. Providing an asset that is already available is a no-op.
+    pub fn provide(self, bytes: Vec<u8>) -> Result<(), Error> {
+        if bytes.len() != self.size() {
+            return Err(Error::InvalidAsset(self));
+        }
+        if let Self::Font(_) = self {
+            let face = Face::parse(&bytes, 0).map_err(|_| Error::InvalidAsset(self))?;
+            let axes = face.variation_axes();
+            if [b"FILL", b"wght", b"GRAD", b"opsz"]
+                .iter()
+                .any(|tag| !axes.into_iter().any(|a| a.tag == Tag::from_bytes(tag)))
+            {
+                return Err(Error::InvalidAsset(self));
+            }
+        }
+        if !self.is_available() {
+            PROVIDED[self.index()].get_or_init(|| Vec::leak(bytes));
+        }
+        Ok(())
     }
 }
 
@@ -287,6 +376,15 @@ impl Icon {
         }
         Ok(icon)
     }
+    /// The asset [`Icon::to_svg`] reads: the style's font, or the SVG pack
+    /// for SVG-only symbols.
+    pub fn required_asset(self) -> Asset {
+        if self.symbol.is_variable() {
+            Asset::Font(self.style)
+        } else {
+            Asset::Supplemental
+        }
+    }
     /// Whether this exact style and axis combination is available upstream.
     pub fn is_supported(self) -> bool {
         self.symbol.is_variable() || self.supplemental_entry().is_some()
@@ -325,7 +423,9 @@ impl Icon {
     }
     fn supplemental_svg(self) -> Result<String, Error> {
         let (offset, len) = self.supplemental_entry().ok_or(Error::UnsupportedVariant)?;
-        let pack = include_bytes!("../assets/supplemental.bin");
+        let pack = Asset::Supplemental
+            .bytes()
+            .ok_or(Error::NotLoaded(Asset::Supplemental))?;
         Ok(std::str::from_utf8(&pack[offset..offset + len])
             .map_err(|_| Error::InvalidFont)?
             .to_owned())
@@ -338,7 +438,9 @@ impl Icon {
         if !self.symbol.is_variable() {
             return self.supplemental_svg();
         }
-        let mut face = Face::parse(self.style.font_bytes(), 0).map_err(|_| Error::InvalidFont)?;
+        let asset = Asset::Font(self.style);
+        let font = asset.bytes().ok_or(Error::NotLoaded(asset))?;
+        let mut face = Face::parse(font, 0).map_err(|_| Error::InvalidFont)?;
         for (tag, value) in [
             (b"FILL", self.axes.fill),
             (b"wght", self.axes.weight),
@@ -388,6 +490,7 @@ impl OutlineBuilder for SvgPath {
 }
 
 /// Errors are explicit; invalid names never silently become a missing-glyph box.
+#[non_exhaustive]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
     /// No upstream symbol has this name.
@@ -402,6 +505,10 @@ pub enum Error {
     InvalidFont,
     /// The selected codepoint has no drawable outline.
     MissingGlyph,
+    /// The asset has not been provided; see [`Asset::provide`].
+    NotLoaded(Asset),
+    /// Bytes given to [`Asset::provide`] are not that asset.
+    InvalidAsset(Asset),
 }
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -412,7 +519,59 @@ impl fmt::Display for Error {
             Self::InvalidPath => f.write_str("invalid Material Symbols asset path"),
             Self::InvalidFont => f.write_str("invalid Material Symbols font"),
             Self::MissingGlyph => f.write_str("Material Symbol has no drawable glyph"),
+            Self::NotLoaded(asset) => {
+                write!(f, "Material Symbols asset {} has not been provided", asset.file_name())
+            }
+            Self::InvalidAsset(asset) => {
+                write!(f, "these bytes are not the Material Symbols asset {}", asset.file_name())
+            }
         }
     }
 }
 impl std::error::Error for Error {}
+
+#[cfg(all(test, not(feature = "embed-assets")))]
+mod tests {
+    use super::*;
+
+    fn file(asset: Asset) -> Vec<u8> {
+        std::fs::read(format!(
+            "{}/assets/{}",
+            env!("CARGO_MANIFEST_DIR"),
+            asset.file_name()
+        ))
+        .unwrap()
+    }
+
+    #[test]
+    fn assets_supplied_at_runtime_draw_their_icons() {
+        let rounded = Symbol::HOME.icon().style(Style::Rounded);
+        let spark = Symbol::APP_SPARK.icon();
+        let font = Asset::Font(Style::Rounded);
+        assert_eq!(rounded.required_asset(), font);
+        assert_eq!(spark.required_asset(), Asset::Supplemental);
+        assert!(!font.is_available());
+        assert_eq!(rounded.to_svg(), Err(Error::NotLoaded(font)));
+        assert_eq!(spark.to_svg(), Err(Error::NotLoaded(Asset::Supplemental)));
+
+        // Another style's font, or a truncated file, is refused.
+        assert_eq!(
+            font.provide(file(Asset::Font(Style::Sharp))),
+            Err(Error::InvalidAsset(font))
+        );
+        let mut truncated = file(font);
+        truncated.pop();
+        assert_eq!(font.provide(truncated), Err(Error::InvalidAsset(font)));
+        assert!(!font.is_available());
+
+        font.provide(file(font)).unwrap();
+        Asset::Supplemental
+            .provide(file(Asset::Supplemental))
+            .unwrap();
+        assert!(rounded.to_svg().unwrap().starts_with("<svg"));
+        assert!(spark.to_svg().unwrap().starts_with("<svg"));
+        // Only what was supplied is available.
+        assert!(!Asset::Font(Style::Outlined).is_available());
+        assert!(font.provide(file(font)).is_ok());
+    }
+}

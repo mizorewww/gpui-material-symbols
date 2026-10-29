@@ -77,6 +77,22 @@ fn main() {
         output.push_str(&format!("({path:?}, {offset}, {len}),\n"));
     }
     output.push_str("];\n");
+    // Asset::provide checks supplied files against these lengths.
+    output.push_str("pub(crate) static ASSET_FILES: [(&str, usize); 4] = [\n");
+    for file in [
+        "MaterialSymbolsOutlined.ttf",
+        "MaterialSymbolsRounded.ttf",
+        "MaterialSymbolsSharp.ttf",
+        "supplemental.bin",
+    ] {
+        let path = format!("assets/{file}");
+        println!("cargo:rerun-if-changed={path}");
+        let len = fs::metadata(&path)
+            .unwrap_or_else(|e| panic!("read {path}: {e}"))
+            .len();
+        output.push_str(&format!("({file:?}, {len}),\n"));
+    }
+    output.push_str("];\n");
     fs::write(
         PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("catalog.rs"),
         output,

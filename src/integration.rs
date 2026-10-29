@@ -28,6 +28,10 @@ impl Icon {
 
 /// Embedded SVG asset source. GPUI caches rasterized SVGs by their full path.
 ///
+/// Without `embed-assets`, loads fail with [`crate::Error::NotLoaded`] and
+/// render empty until the icon's [`crate::Asset`] is provided and the window
+/// redraws.
+///
 /// Use [`Self::with_fallback`] to preserve your application's existing resources.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct MaterialSymbols;

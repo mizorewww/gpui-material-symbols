@@ -14,12 +14,15 @@ publish = false
 exclude = [".research/", "docs/", "scripts/", ".github/"]
 
 [features]
-default = ["gpui-kit"]
+default = ["gpui-kit", "embed-assets"]
+# Build the fonts and SVG pack into the binary. Without it, supply them with
+# `Asset::provide` at runtime (the web build downloads them).
+embed-assets = []
 gpui-kit = ["dep:gpui-kit", "dep:anyhow"]
 showcase = ["gpui-kit"]
 # Headless `showcase --capture`: enables test-support on Kit's own gpui-pre backend.
 showcase-capture = ["showcase", "dep:gpui", "dep:gpui_platform"]
-material-browser = ["dep:gpui", "dep:gpui_platform", "dep:gpui-base", "dep:gpui-kit-material", "dep:tiny-skia"]
+material-browser = ["embed-assets", "dep:gpui", "dep:gpui_platform", "dep:gpui-base", "dep:gpui-kit-material", "dep:tiny-skia"]
 
 [dependencies]
 ttf-parser = { version = "0.25", default-features = false, features = ["std", "variable-fonts"] }
@@ -44,7 +47,19 @@ debug = "line-tables-only"
 
 [[example]]
 name = "export"
-required-features = []
+required-features = ["embed-assets"]
+
+[[test]]
+name = "integration"
+required-features = ["gpui-kit", "embed-assets"]
+
+[[test]]
+name = "catalog"
+required-features = ["embed-assets"]
+
+[[test]]
+name = "rendering"
+required-features = ["embed-assets"]
 
 [[example]]
 name = "showcase"

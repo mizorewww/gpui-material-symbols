@@ -11,7 +11,7 @@ crate-type = ["cdylib", "rlib"]
 
 # The same versions as the root crate's `material-browser` feature.
 [target.'cfg(target_family = "wasm")'.dependencies]
-gpui-material-symbols = { path = "..", default-features = false }
+gpui-material-symbols = { path = "..", default-features = false, features = ["embed-assets"] }
 gpui = { package = "gpui-pre", version = "=0.3.10" }
 gpui_platform = { package = "gpui-pre-platform", version = "=0.3.10", default-features = false }
 gpui-base = { version = "=0.8.1" }
