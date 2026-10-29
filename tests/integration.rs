@@ -40,6 +40,15 @@ fn composes_with_existing_assets_and_preserves_errors() {
             .len(),
         1
     );
+    assert_eq!(
+        MaterialSymbols.list("").unwrap().len(),
+        Symbol::all().len() * 3
+    );
+    assert_eq!(
+        MaterialSymbols.list("material").unwrap().len(),
+        Symbol::all().len() * 3
+    );
+    assert!(MaterialSymbols.list("app/").unwrap().is_empty());
     let _: gpui_kit::Svg = Symbol::HOME.icon().svg();
 }
 

@@ -43,6 +43,10 @@ impl AssetSource for MaterialSymbols {
         )))
     }
     fn list(&self, prefix: &str) -> anyhow::Result<Vec<SharedString>> {
+        const ROOT: &str = "material-symbols/";
+        if !(prefix.starts_with(ROOT) || ROOT.starts_with(prefix)) {
+            return Ok(Vec::new());
+        }
         // Continuous axes cannot be enumerated. List default coordinates in every style.
         Ok(Symbol::all()
             .flat_map(|symbol| Style::ALL.map(move |style| symbol.icon().style(style).asset_path()))
