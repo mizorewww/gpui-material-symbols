@@ -99,7 +99,7 @@ struct Browser {
     color_input: Entity<InputState>,
     style: Style,
     filled: bool,
-    dark: bool,
+    theme: Appearance,
     sort: Sort,
     selected: Option<usize>,
     detail_open: bool,
@@ -135,6 +135,8 @@ impl Browser {
                 }
             }),
             cx.subscribe(&color_input, |_, _, _: &InputEvent, cx| cx.notify()),
+            // Repaint when the system switches between light and dark.
+            cx.observe_window_appearance(window, |_, _, cx| cx.notify()),
         ];
         for state in [&weight, &grade, &optical] {
             subscriptions.push(cx.subscribe(state, |_, _, event, cx| {
@@ -156,7 +158,7 @@ impl Browser {
             color_input,
             style: Style::Outlined,
             filled: false,
-            dark: theme::system_dark(cx),
+            theme: Appearance::System,
             sort: Sort::Popular,
             selected: None,
             detail_open: false,
@@ -218,6 +220,14 @@ impl Browser {
                 offset_in_item: px(0.),
             });
         }
+    }
+
+    fn palette(&self, cx: &App) -> PaletteId {
+        ThemePreferences {
+            mode: self.theme,
+            ..Default::default()
+        }
+        .resolve(theme::system_dark(cx))
     }
 
     fn icon(&self, symbol: Symbol, cx: &App) -> SymbolIcon {
@@ -348,7 +358,7 @@ impl Browser {
             .child(title_bar_control(
                 icon_button(
                     "theme",
-                    if self.dark {
+                    if self.palette(cx) == PaletteId::Ink {
                         Symbol::LIGHT_MODE
                     } else {
                         Symbol::DARK_MODE
@@ -356,7 +366,12 @@ impl Browser {
                     "Toggle light and dark theme",
                 )
                 .on_click(cx.listener(|this, _, _, cx| {
-                    this.dark = !this.dark;
+                    // An explicit choice overrides the system appearance.
+                    this.theme = if this.palette(cx) == PaletteId::Ink {
+                        Appearance::Light
+                    } else {
+                        Appearance::Dark
+                    };
                     cx.notify();
                 })),
             ))
@@ -711,15 +726,8 @@ fn title_case(name: &str) -> String {
 
 impl Render for Browser {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        theme::apply_palette(
-            if self.dark {
-                PaletteId::Ink
-            } else {
-                PaletteId::Paper
-            },
-            window,
-            cx,
-        );
+        let palette = self.palette(cx);
+        theme::apply_palette(palette, window, cx);
         theme::apply_scale(1., window);
         // The details sheet sits beside the grid, so tiles never hide under it.
         let sheet = if self.detail_open {
@@ -864,12 +872,17 @@ fn capture(directory: &str) {
             cx.new(|cx| Browser::new(w, cx))
         })
         .unwrap();
-    for state in ["light", "dark", "detail", "search"] {
+    for state in ["light", "dark", "detail", "detail-dark", "search"] {
         window
             .update(&mut app, |view, w, cx| {
-                view.dark = state == "dark";
-                view.detail_open = state == "detail";
-                view.selected = (state == "detail")
+                view.theme = if state.ends_with("dark") {
+                    Appearance::Dark
+                } else {
+                    Appearance::Light
+                };
+                view.detail_open = state.starts_with("detail");
+                view.selected = view
+                    .detail_open
                     .then(|| view.entries.iter().position(|e| e.symbol == Symbol::SEARCH))
                     .flatten();
                 let query = if state == "search" { "home" } else { "" };
@@ -891,7 +904,7 @@ fn capture(directory: &str) {
             .save(Path::new(directory).join(format!("{state}.png")))
             .unwrap();
     }
-    println!("Captured four native GPUI states to {directory}");
+    println!("Captured five native GPUI states to {directory}");
 }
 
 #[cfg(test)]
