@@ -2293,18 +2293,19 @@ dependencies = [
 [[package]]
 name = "gpui-kit-material"
 version = "0.1.0"
-source = "git+https://github.com/mizorewww/gpui-kit-material?branch=main#edf5e591915d99ef4a9fa7fdc1a94383dc8db658"
+source = "git+https://github.com/mizorewww/gpui-kit-material?branch=main#0dd2d9f22baec8fa21f7d534c55da791cc2c5846"
 dependencies = [
  "anyhow",
  "gpui-base 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gpui-kit-material-color",
  "gpui-pre",
+ "web-time",
 ]
 
 [[package]]
 name = "gpui-kit-material-color"
 version = "0.1.0"
-source = "git+https://github.com/mizorewww/gpui-kit-material?branch=main#edf5e591915d99ef4a9fa7fdc1a94383dc8db658"
+source = "git+https://github.com/mizorewww/gpui-kit-material?branch=main#0dd2d9f22baec8fa21f7d534c55da791cc2c5846"
 dependencies = [
  "serde",
 ]

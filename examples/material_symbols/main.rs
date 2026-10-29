@@ -18,10 +18,7 @@ use gpui_material_symbols::{Icon as SymbolIcon, Style, Symbol};
 use std::{borrow::Cow, path::Path};
 
 /// The app bar doubles as the window title bar.
-const APP_BAR: f32 = 64.;
-/// macOS draws its traffic lights inside the app bar, vertically centred.
-const TRAFFIC_LIGHTS: Point<Pixels> = point(px(20.), px(25.));
-const TRAFFIC_LIGHTS_WIDTH: f32 = 72.;
+const APP_BAR: Pixels = px(64.);
 const TILE: f32 = 104.;
 const TILE_GAP: f32 = 8.;
 const GRID_INSET: f32 = 24.;
@@ -105,7 +102,6 @@ struct Browser {
     detail_open: bool,
     preview_size: f32,
     status: SharedString,
-    should_move: bool,
     _subscriptions: Vec<Subscription>,
 }
 
@@ -164,7 +160,6 @@ impl Browser {
             detail_open: false,
             preview_size: 48.,
             status: "".into(),
-            should_move: false,
             _subscriptions: subscriptions,
         };
         this.rebuild(cx);
@@ -256,49 +251,11 @@ impl Browser {
         cx.notify();
     }
 
-    /// The app bar is the window's title bar: same surface as the content,
-    /// draggable, with the platform's own window controls.
-    fn app_bar(&self, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let leading = if cfg!(target_os = "macos") && !window.is_fullscreen() {
-            TRAFFIC_LIGHTS_WIDTH + 16.
-        } else {
-            20.
-        };
-        div()
-            .id("app-bar")
-            .flex()
-            .flex_shrink_0()
-            .items_center()
+    /// The app bar is the window's title bar, drawn by the kit's `TitleBar`
+    /// on the same surface as the content.
+    fn app_bar(&self, cx: &mut Context<Self>) -> impl IntoElement {
+        TitleBar::new("app-bar", APP_BAR)
             .gap(rem(16.))
-            .h(px(APP_BAR))
-            .pl(px(leading))
-            .pr(px(CaptionButtons::trailing(window)))
-            .window_control_area(WindowControlArea::Drag)
-            .on_mouse_down(
-                MouseButton::Left,
-                cx.listener(|this, _, _, _| this.should_move = true),
-            )
-            .on_mouse_up(
-                MouseButton::Left,
-                cx.listener(|this, _, _, _| this.should_move = false),
-            )
-            .on_mouse_move(cx.listener(|this, _, window, _| {
-                // Windows moves the window through the drag control area.
-                if this.should_move && !cfg!(target_os = "windows") {
-                    this.should_move = false;
-                    window.start_window_move();
-                }
-            }))
-            .on_click(|event, window, _| {
-                // Windows zooms on a double click in the drag area by itself.
-                if event.click_count() == 2 {
-                    if cfg!(target_os = "macos") {
-                        window.titlebar_double_click();
-                    } else if !cfg!(target_os = "windows") {
-                        window.zoom_window();
-                    }
-                }
-            })
             .child(glyph(Symbol::INTERESTS, 24.))
             .child(
                 div()
@@ -757,7 +714,7 @@ impl Render for Browser {
             .text_size(rem(14.))
             .bg(color(ColorRole::CANVAS))
             .text_color(color(ColorRole::INK))
-            .child(self.app_bar(window, cx))
+            .child(self.app_bar(cx))
             .child(self.toolbar(cx))
             .child(
                 div()
@@ -785,50 +742,23 @@ impl Render for Browser {
                                 .absolute()
                                 .bottom(rem(24.))
                                 .left(px(GRID_INSET))
-                                .flex()
-                                .items_center()
-                                .gap(rem(12.))
-                                .pl(rem(20.))
-                                .pr(rem(8.))
-                                .py(rem(8.))
-                                .rounded(rem(8.))
-                                .bg(color(ColorRole::INK))
-                                .text_color(color(ColorRole::CANVAS))
-                                .child(self.status.clone())
-                                .child(
-                                    material_button("dismiss-status", ButtonVariant::Text)
-                                        .text_color(color(ColorRole::CANVAS))
-                                        .child("Dismiss")
-                                        .on_click(cx.listener(|this, _, _, cx| {
-                                            this.status = "".into();
-                                            cx.notify();
-                                        })),
-                                ),
+                                .child(Snackbar::new("status", self.status.clone()).close(
+                                    "Dismiss",
+                                    cx.listener(|this, _, _, cx| {
+                                        this.status = "".into();
+                                        cx.notify();
+                                    }),
+                                )),
                         )
                     }),
             )
-            .child(CaptionButtons::new(px(APP_BAR)))
     }
 }
 
 fn window_options(cx: &App) -> WindowOptions {
     WindowOptions {
-        window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
-            None,
-            size(px(1280.), px(860.)),
-            cx,
-        ))),
-        titlebar: Some(TitlebarOptions {
-            title: Some("Material Symbols".into()),
-            appears_transparent: true,
-            traffic_light_position: Some(TRAFFIC_LIGHTS),
-        }),
-        // The app bar moves the window itself; without this AppKit also treats
-        // it as a native title bar, zooming twice and delaying clicks in it.
-        app_owns_titlebar_drag: true,
-        window_decorations: Some(WindowDecorations::Client),
         window_min_size: Some(size(px(720.), px(480.))),
-        ..Default::default()
+        ..title_bar_window_options("Material Symbols", APP_BAR, size(px(1280.), px(860.)), cx)
     }
 }
 
@@ -1049,37 +979,5 @@ mod interaction_tests {
             assert_ne!(v.palette(cx) == PaletteId::Ink, dark);
             assert!(v.theme != Appearance::System);
         });
-    }
-    #[gpui::test]
-    fn only_empty_app_bar_space_starts_a_window_drag(cx: &mut TestAppContext) {
-        setup(cx);
-        let (view, cx) = cx.add_window_view(Browser::new);
-        draw(cx);
-        let press = |cx: &mut VisualTestContext, point: Point<Pixels>| {
-            cx.simulate_mouse_down(point, MouseButton::Left, Modifiers::default());
-            let moving = view.read_with(cx, |v, _| v.should_move);
-            cx.simulate_mouse_up(point, MouseButton::Left, Modifiers::default());
-            moving
-        };
-        let center = |cx: &mut VisualTestContext, id: &str| {
-            cx.update(|w, _| {
-                gpui_base::test_support::find(
-                    w,
-                    &[],
-                    &ElementId::from(SharedString::from(id.to_owned())),
-                )
-                .expect("visible control")
-                .bounds()
-                .center()
-            })
-        };
-        assert!(
-            press(cx, point(px(400.), px(APP_BAR / 2.))),
-            "empty bar space drags"
-        );
-        let theme = center(cx, "theme");
-        assert!(!press(cx, theme), "the theme button keeps its press");
-        let sort = center(cx, "name");
-        assert!(!press(cx, sort), "the sort group keeps its press");
     }
 }
