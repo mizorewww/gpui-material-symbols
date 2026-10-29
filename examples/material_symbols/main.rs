@@ -986,11 +986,9 @@ mod interaction_tests {
         click(cx, "close-detail".into());
         view.read_with(cx, |v, _| assert!(!v.detail_open));
 
-        view.update(cx, |v, cx| {
-            v.sort = Sort::Name;
-            v.rebuild(cx);
-        });
+        click(cx, "name".into());
         view.read_with(cx, |v, _| {
+            assert!(v.sort == Sort::Name);
             let Some(Row::Icons(first)) = v.rows.get(1) else {
                 panic!("expected an icon row after the first heading");
             };
@@ -1010,5 +1008,78 @@ mod interaction_tests {
         });
         click(cx, "clear-search".into());
         view.read_with(cx, |v, _| assert_eq!(v.shown, v.entries.len()));
+    }
+    #[gpui::test]
+    fn details_sheet_takes_columns_from_the_grid(cx: &mut TestAppContext) {
+        setup(cx);
+        let (view, cx) = cx.add_window_view(Browser::new);
+        draw(cx);
+        let (columns, first) = view.read_with(cx, |v, _| {
+            let Some(Row::Icons(row)) = v.rows.get(1) else {
+                panic!("expected an icon row after the first heading");
+            };
+            (v.columns, row[0])
+        });
+        click(cx, ("icon", first).into());
+        draw(cx);
+        view.read_with(cx, |v, _| {
+            assert!(v.detail_open);
+            assert!(v.columns < columns, "{} should be < {columns}", v.columns);
+        });
+    }
+    #[gpui::test]
+    fn toolbar_and_theme_controls_change_the_rendered_icons(cx: &mut TestAppContext) {
+        setup(cx);
+        let (view, cx) = cx.add_window_view(Browser::new);
+        draw(cx);
+        let home = |cx: &mut VisualTestContext| {
+            view.update(cx, |v, cx| v.icon(Symbol::HOME, cx).asset_path())
+        };
+        let outlined = home(cx);
+        click(cx, "rounded".into());
+        assert!(home(cx).starts_with("material-symbols/rounded/"));
+        click(cx, "fill".into());
+        let filled = home(cx);
+        assert!(filled.contains("/home/1/"), "{filled}");
+        assert_ne!(outlined, filled);
+
+        let dark = view.update(cx, |v, cx| v.palette(cx) == PaletteId::Ink);
+        click(cx, "theme".into());
+        view.update(cx, |v, cx| {
+            assert_ne!(v.palette(cx) == PaletteId::Ink, dark);
+            assert!(v.theme != Appearance::System);
+        });
+    }
+    #[gpui::test]
+    fn only_empty_app_bar_space_starts_a_window_drag(cx: &mut TestAppContext) {
+        setup(cx);
+        let (view, cx) = cx.add_window_view(Browser::new);
+        draw(cx);
+        let press = |cx: &mut VisualTestContext, point: Point<Pixels>| {
+            cx.simulate_mouse_down(point, MouseButton::Left, Modifiers::default());
+            let moving = view.read_with(cx, |v, _| v.should_move);
+            cx.simulate_mouse_up(point, MouseButton::Left, Modifiers::default());
+            moving
+        };
+        let center = |cx: &mut VisualTestContext, id: &str| {
+            cx.update(|w, _| {
+                gpui_base::test_support::find(
+                    w,
+                    &[],
+                    &ElementId::from(SharedString::from(id.to_owned())),
+                )
+                .expect("visible control")
+                .bounds()
+                .center()
+            })
+        };
+        assert!(
+            press(cx, point(px(400.), px(APP_BAR / 2.))),
+            "empty bar space drags"
+        );
+        let theme = center(cx, "theme");
+        assert!(!press(cx, theme), "the theme button keeps its press");
+        let sort = center(cx, "name");
+        assert!(!press(cx, sort), "the sort group keeps its press");
     }
 }
