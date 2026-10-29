@@ -816,11 +816,7 @@ impl Browser {
         let api = catalog::api(icon);
         let text = entry.label();
         let color_text = self.color_input.read(cx).value();
-        let preview_color = u32::from_str_radix(color_text.trim_start_matches('#'), 16)
-            .ok()
-            .filter(|_| color_text.trim_start_matches('#').len() == 6)
-            .map(rgb)
-            .unwrap_or(rgb(0x1f1f1f));
+        let preview_color = rgb(export::parse_hex(&color_text).unwrap_or(0x1f1f1f));
         let supported = icon.is_supported();
         div().id("details").absolute().right_0().top_0().bottom_0().w(rem(320.)).bg(color(ColorRole::CANVAS)).border_l_1().border_color(color(ColorRole::HAIRLINE)).overflow_y_scroll()
    .child(div().h(rem(64.)).flex().justify_end().items_center().px(rem(8.)).border_b_1().border_color(color(ColorRole::HAIRLINE)).child(button("close-detail",Symbol::CLOSE,"Close icon details").on_click(cx.listener(|this,_,_,cx|{this.detail_open=false;cx.notify();}))))

@@ -1,17 +1,19 @@
 use gpui_material_symbols::Icon;
 
-/// Material Symbols are monochrome. Apply the preview color to every path,
-/// including Google's SVG-only resources, which can carry their own fill.
+/// Parse a `#RRGGBB` (or `RRGGBB`) color. `from_str_radix` alone accepts a sign.
+pub fn parse_hex(color: &str) -> Option<u32> {
+    let hex = color.strip_prefix('#').unwrap_or(color);
+    (hex.len() == 6 && hex.bytes().all(|b| b.is_ascii_hexdigit()))
+        .then(|| u32::from_str_radix(hex, 16).ok())
+        .flatten()
+}
+
+/// Material Symbols are monochrome. Apply the preview color to every path.
 pub fn encode(icon: Icon, size: u32, color: &str, png: bool) -> Result<Vec<u8>, String> {
     if !(16..=96).contains(&size) {
         return Err("Invalid size".into());
     }
-    let hex = color.trim_start_matches('#');
-    let color = if hex.len() == 6 && u32::from_str_radix(hex, 16).is_ok() {
-        format!("#{hex}")
-    } else {
-        "#1F1F1F".into()
-    };
+    let color = format!("#{:06X}", parse_hex(color).unwrap_or(0x1f1f1f));
     let source = icon.to_svg().map_err(|e| e.to_string())?;
     let end = source.find('>').ok_or("Missing SVG root")?;
     let svg = format!(
@@ -51,6 +53,18 @@ pub fn encode(icon: Icon, size: u32, color: &str, png: bool) -> Result<Vec<u8>, 
 mod tests {
     use super::*;
     use gpui_material_symbols::Symbol;
+    #[test]
+    fn hex_colors_reject_signs_and_repeated_hashes() {
+        assert_eq!(parse_hex("#1F1f1f"), Some(0x1f1f1f));
+        assert_eq!(parse_hex("ff0000"), Some(0xff0000));
+        for bad in [
+            "+12345", "#+12345", "##ff0000", "#fff", "#ff00000", "#gg0000",
+        ] {
+            assert_eq!(parse_hex(bad), None, "{bad}");
+        }
+        let svg = String::from_utf8(encode(Symbol::HOME.icon(), 24, "+12345", false).unwrap());
+        assert!(!svg.unwrap().contains('+'));
+    }
     #[test]
     fn exported_color_and_dimensions_follow_preview() {
         let svg = encode(Symbol::HOME.icon(), 32, "#ff0000", false).unwrap();
