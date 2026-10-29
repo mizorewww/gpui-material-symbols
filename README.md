@@ -2,7 +2,7 @@
 
 在 [Longbridge GPUI Kit](https://github.com/longbridge/gpui-kit) 应用中直接使用全部 Google
 Material Symbols：4,359 个图标名称，Outlined / Rounded / Sharp 三种风格，以及连续可调的
-填充、粗细、等级和光学尺寸。`Symbol` 实现了 Kit 的 `IconNamed`，可以直接放进按钮、菜单等
+填充、粗细、等级和光学尺寸（其中 55 个仅有官方离散取值，见下文）。`Symbol` 实现了 Kit 的 `IconNamed`，可以直接放进按钮、菜单等
 任意标准图标槽位。官方字体和 SVG 全部内嵌在库中，构建和运行时不联网、不注册系统字体。
 
 | 轴 | 取值 |
@@ -142,7 +142,7 @@ assert!(svg.starts_with("<svg"));
 # Kit 集成示例
 cargo run --features showcase --example showcase
 
-# 图标浏览器（使用 gpui-kit-material 组件）
+# 图标浏览器（使用 gpui-kit-material 组件，需要该私有仓库的读取权限）
 cargo run --no-default-features --features material-browser --example material_symbols
 
 # 命令行导出 SVG
