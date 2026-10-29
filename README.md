@@ -29,7 +29,7 @@ Material Symbols：4,359 个图标名称，Outlined / Rounded / Sharp 三种风�
 
 ## 安装
 
-本库通过 Git 分发（仓库目前为私有，需要有读取权限的凭据）：
+本库通过 Git 分发：
 
 ```toml
 [dependencies]
@@ -142,7 +142,7 @@ assert!(svg.starts_with("<svg"));
 # Kit 集成示例
 cargo run --features showcase --example showcase
 
-# 图标浏览器（使用 gpui-kit-material 组件，需要该私有仓库的读取权限）
+# 图标浏览器（使用 gpui-kit-material 组件）
 cargo run --no-default-features --features material-browser --example material_symbols
 
 # 命令行导出 SVG
