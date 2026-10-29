@@ -1,0 +1,17 @@
+{
+  "name": "m3symbols",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "../scripts/build-web.sh && cf build",
+    "deploy": "../scripts/build-web.sh && cf deploy",
+    "dev": "../scripts/build-web.sh && cf dev"
+  },
+  "devDependencies": {
+    "cf": "^1.0.0-beta.25",
+    "wrangler": "^4.155.0"
+  },
+  "allowScripts": {
+    "workerd": true
+  }
+}
