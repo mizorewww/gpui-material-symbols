@@ -27,6 +27,9 @@ Pinned by `Cargo.lock`:
 | `cargo build --locked --features showcase --example showcase` | Passed, including native linking |
 | `material_symbols --capture` | Rendered through the Metal headless renderer; the five browser captures in `docs/screenshots/` were regenerated from this output. `showcase.png` was not recaptured for this record |
 | `cargo metadata --locked` in a fresh clone without `../gpui-kit-material` | Resolved |
+| `cargo clippy --locked -p gpui-material-symbols-web --target wasm32-unknown-unknown -- -D warnings` | Passed |
+| `scripts/build-web.sh`, then `cf deploy --dry-run` and `npm run deploy` in `web/` (cf 1.0.0-beta.25, Wrangler 4.155.0) | 70.8 MB module, 16.5 MB as Brotli; deployed to <https://m3symbols.mizore.blog>, which returns the module as `application/wasm` with `Content-Encoding: br` |
+| Headless Chrome on macOS, locally through `wrangler dev` and on the live site | WebGPU initialized and the browser grid rendered; interaction in the web build was not tested |
 
 Coverage: the union of 4,359 names; all 4,304 variable names × three styles ×
 four representative axis sets (51,648 SVG generations); all 27,720

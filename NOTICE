@@ -6,5 +6,9 @@ codepoint catalogs from google/material-design-icons, licensed under Apache-2.0.
 The upstream license is preserved in assets/LICENSE. Exact source revision and
 SHA-256 digests are recorded in assets/manifest.json.
 
+The web build of the icon browser bundles IBM Plex Sans Regular, licensed
+under the SIL Open Font License 1.1 (web/fonts/OFL.txt; source and SHA-256 in
+web/fonts/SOURCES.json).
+
 Material Symbols are a Google design resource. This project is an independent
 integration for Longbridge GPUI Kit and is not affiliated with or endorsed by Google.

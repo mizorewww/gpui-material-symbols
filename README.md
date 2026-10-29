@@ -9,6 +9,9 @@ adjustable fill, weight, grade and optical size. `Symbol` implements Kit's
 `IconNamed`, so icons drop straight into buttons, menus and every other
 standard icon slot.
 
+**Try the icon browser in your browser: <https://m3symbols.mizore.blog>**
+(WebAssembly, about a 17 MB download).
+
 ## Run the examples
 
 ```sh
@@ -24,6 +27,8 @@ cargo run --features showcase --example showcase
 # Export one SVG from the command line
 cargo run --no-default-features --example export -- home rounded > home.svg
 ```
+
+The browser also builds for the web; see the [web preview guide](docs/web.md).
 
 ## Screenshots
 
@@ -197,7 +202,8 @@ which covers the validation commands, updating Kit and the Google assets, and
 regenerating the screenshots.
 
 More background: [validation record](docs/validation.md) ·
-[research notes](docs/research.md) · [icon browser](docs/MATERIAL_SYMBOLS.md).
+[research notes](docs/research.md) · [icon browser](docs/MATERIAL_SYMBOLS.md) ·
+[web preview](docs/web.md).
 The icon data is pinned to `google/material-design-icons` commit `10ecc14`;
 sources and checksums are in [`assets/manifest.json`](assets/manifest.json).
 

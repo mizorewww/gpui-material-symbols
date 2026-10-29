@@ -7,6 +7,8 @@ Material Symbols：4,359 个图标名称，Outlined / Rounded / Sharp 三种风�
 填充、粗细、等级和光学尺寸。`Symbol` 实现了 Kit 的 `IconNamed`，可以直接放进按钮、菜单等
 任意标准图标槽位。
 
+**在浏览器中直接试用图标浏览器：<https://m3symbols.mizore.blog>**（WebAssembly，约需下载 17 MB）。
+
 ## 运行示例
 
 ```sh
@@ -22,6 +24,8 @@ cargo run --features showcase --example showcase
 # 命令行导出单个 SVG
 cargo run --no-default-features --example export -- home rounded > home.svg
 ```
+
+图标浏览器也可以构建为网页版，见 [网页预览说明](docs/web.md)。
 
 ## 截图
 
@@ -180,7 +184,7 @@ assert!(svg.starts_with("<svg"));
 项目由 [@mizorewww](https://github.com/mizorewww) 维护。提交改动前请阅读[维护指南](docs/maintenance.md)，
 其中包括验证命令、更新 Kit 与 Google 资源以及重新生成截图的方法。
 
-更多背景：[验证记录](docs/validation.md) · [调研记录](docs/research.md) · [图标浏览器说明](docs/MATERIAL_SYMBOLS.md)。
+更多背景：[验证记录](docs/validation.md) · [调研记录](docs/research.md) · [图标浏览器说明](docs/MATERIAL_SYMBOLS.md) · [网页预览](docs/web.md)。
 图标数据固定在 `google/material-design-icons` 提交 `10ecc14`，来源与校验值见 [`assets/manifest.json`](assets/manifest.json)。
 
 ## 许可
