@@ -1100,20 +1100,22 @@ mod interaction_tests {
         let (view, cx) = cx.add_window_view(Browser::new);
         draw(cx);
         let entry = view.update(cx, |v, _| {
-            let ix = v
+            // An icon row halfway down the catalog, not its first heading.
+            let (ix, entry) = v
                 .rows
                 .iter()
-                .rposition(|r| matches!(r, Row::Icons(_)))
-                .unwrap()
-                / 2;
+                .enumerate()
+                .skip(v.rows.len() / 2)
+                .find_map(|(ix, row)| match row {
+                    Row::Icons(row) => Some((ix, row[0])),
+                    _ => None,
+                })
+                .unwrap();
             v.list.scroll_to(ListOffset {
                 item_ix: ix,
                 offset_in_item: px(0.),
             });
-            let Row::Icons(row) = &v.rows[ix] else {
-                unreachable!()
-            };
-            row[0]
+            entry
         });
         draw(cx);
         let columns = view.read_with(cx, |v, _| v.columns);
