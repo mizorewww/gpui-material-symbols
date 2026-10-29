@@ -7,7 +7,7 @@ Material Symbols：4,359 个图标名称，Outlined / Rounded / Sharp 三种风�
 填充、粗细、等级和光学尺寸。`Symbol` 实现了 Kit 的 `IconNamed`，可以直接放进按钮、菜单等
 任意标准图标槽位。
 
-**在浏览器中直接试用图标浏览器：<https://m3symbols.mizore.blog>**（WebAssembly，约需下载 17 MB）。
+**在浏览器中直接试用图标浏览器：<https://m3symbols.mizore.blog>**（WebAssembly，首次访问约下载 8 MB）。
 
 ## 运行示例
 

@@ -10,7 +10,7 @@ adjustable fill, weight, grade and optical size. `Symbol` implements Kit's
 standard icon slot.
 
 **Try the icon browser in your browser: <https://m3symbols.mizore.blog>**
-(WebAssembly, about a 17 MB download).
+(WebAssembly, about 8 MB on the first visit).
 
 ## Run the examples
 

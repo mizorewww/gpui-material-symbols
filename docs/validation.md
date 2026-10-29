@@ -29,8 +29,9 @@ Pinned by `Cargo.lock`:
 | `material_symbols --capture` | Rendered through the Metal headless renderer; output byte-identical to the five browser captures in `docs/screenshots/`. `showcase.png` was not recaptured for this record |
 | `cargo metadata --locked` in a fresh clone without `../gpui-kit-material` | Resolved |
 | `cargo clippy --locked -p gpui-material-symbols-web --target wasm32-unknown-unknown -- -D warnings` | Passed |
-| `scripts/build-web.sh` | 18.0 MB module without embedded assets: 3.5 MB as Brotli. Fonts as Brotli: Outlined 4.1 MB, Rounded 5.5 MB, Sharp 3.6 MB; SVG pack 2.2 MB |
-| Headless Chrome on macOS through `cf dev` | WebGPU initialized and the Outlined grid rendered; the server saw one request each for the module, its JavaScript and the Outlined font (the preload was reused), and none for the other assets. Switching styles and interaction in the web build were not tested |
+| `scripts/build-web.sh` | 19.9 MB module without embedded assets, 3.7 MB as Brotli in 10 chunks. Fonts as Brotli: Outlined 4.1 MB (6 chunks), Rounded 5.6 MB (8), Sharp 3.6 MB (5); SVG pack 2.4 MB (8) |
+| Chrome through `cf dev`, driven by agent-browser | First load: 17 requests (the JavaScript, 10 module and 6 Outlined chunks), none for other assets. Reload: all 17 from the cache (0 bytes transferred). With one module chunk blocked, the page showed "Connection problem, resuming…"; after unblocking it loaded, and only that chunk was requested more than once. A chunk mocked with other contents stopped the load with "The site was just updated. Reload the page…" instead of retrying. With the Rounded chunks returning 404, choosing Rounded requested each chunk once and showed "The site was updated. Reload the page to see these icons." without retrying |
+| Chrome's iPhone 14 emulation (390×844, ratio 3) | Canvas 1170×2532 after the `devicePixelContentBoxSize` workaround (390×844 before); compact layout, controls panel and full-width details sheet rendered. Not tested on a real phone; touch scrolling not tested |
 
 Coverage: the union of 4,359 names; all 4,304 variable names × three styles ×
 four representative axis sets (51,648 SVG generations); all 27,720
