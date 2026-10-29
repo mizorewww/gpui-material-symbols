@@ -72,7 +72,9 @@ fn labelled(label: &'static str, value: String, control: impl IntoElement) -> Di
                 .flex()
                 .gap(rem(6.))
                 .child(label)
-                .child(div().text_color(color(ColorRole::GRAY)).child(value)),
+                .when(!value.is_empty(), |e| {
+                    e.child(div().text_color(color(ColorRole::GRAY)).child(value))
+                }),
         )
         .child(control)
 }
@@ -233,7 +235,10 @@ impl Browser {
         self.style = Style::Outlined;
         self.filled = false;
         self.sort = Sort::Popular;
+        self.preview_size = 48.;
         self.search.update(cx, |s, cx| s.set_value("", window, cx));
+        self.color_input
+            .update(cx, |s, cx| s.set_value(DEFAULT_COLOR, window, cx));
         for (s, v) in [(&self.weight, 400.), (&self.grade, 1.), (&self.optical, 1.)] {
             s.update(cx, |s, cx| s.set_value(v, window, cx));
         }
@@ -505,6 +510,7 @@ impl Browser {
         let icon = self.icon(entry.symbol, cx);
         let supported = icon.is_supported();
         let code = catalog::api(icon);
+        let code_text = code.clone();
         let preview_color =
             rgb(export::parse_hex(&self.color_input.read(cx).value()).unwrap_or(0x1f1f1f));
         let codepoint = entry
@@ -555,7 +561,10 @@ impl Browser {
                     .items_center()
                     .justify_center()
                     .rounded(rem(16.))
-                    .bg(color(ColorRole::SURFACE))
+                    // A fixed canvas, so the export color reads in either theme.
+                    .bg(rgb(0xffffff))
+                    .border_1()
+                    .border_color(color(ColorRole::HAIRLINE))
                     .child(if supported {
                         svg()
                             .path(icon.asset_path())
@@ -645,7 +654,7 @@ impl Browser {
                     .font_family("Menlo")
                     .text_size(rem(12.))
                     .whitespace_normal()
-                    .child(catalog::api(icon)),
+                    .child(code_text),
             );
         div()
             .id("details")
@@ -660,6 +669,11 @@ impl Browser {
 
     fn export(&mut self, icon: SymbolIcon, png: bool, cx: &mut Context<Self>) {
         let color = self.color_input.read(cx).value();
+        if export::parse_hex(&color).is_none() {
+            self.status = "Enter the color as #RRGGBB".into();
+            cx.notify();
+            return;
+        }
         let Ok(bytes) = export::encode(icon, self.preview_size as u32, &color, png) else {
             self.status = "Could not render icon".into();
             cx.notify();
