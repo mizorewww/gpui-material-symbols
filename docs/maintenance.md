@@ -82,7 +82,5 @@ use GPUI's native headless renderer; on macOS this needs a Metal device.
 
 ## CI
 
-[ci.yml](ci.yml) is a ready GitHub Actions workflow. It needs a
-`DEPENDENCY_READ_TOKEN` secret that can read the private `gpui-kit-material`
-repository. Move it to `.github/workflows/ci.yml` once a token with the
-`workflow` scope is available.
+[ci.yml](ci.yml) is a ready GitHub Actions workflow. Move it to
+`.github/workflows/ci.yml` once a token with the `workflow` scope is available.

@@ -1,22 +1,10 @@
 name: CI
 on: [push, pull_request]
-env:
-  # Cargo resolves every optional git dependency of this package, including the
-  # private gpui-kit-material, even for --no-default-features builds.
-  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
 jobs:
   core:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Authorize private Git dependencies
-        # Fork pull requests get no secrets; leave public fetches untouched then.
-        env:
-          DEPENDENCY_READ_TOKEN: ${{ secrets.DEPENDENCY_READ_TOKEN }}
-        run: |
-          if [ -n "$DEPENDENCY_READ_TOKEN" ]; then
-            git config --global url."https://x-access-token:${DEPENDENCY_READ_TOKEN}@github.com/".insteadOf "https://github.com/"
-          fi
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
@@ -27,14 +15,6 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Authorize private Git dependencies
-        # Fork pull requests get no secrets; leave public fetches untouched then.
-        env:
-          DEPENDENCY_READ_TOKEN: ${{ secrets.DEPENDENCY_READ_TOKEN }}
-        run: |
-          if [ -n "$DEPENDENCY_READ_TOKEN" ]; then
-            git config --global url."https://x-access-token:${DEPENDENCY_READ_TOKEN}@github.com/".insteadOf "https://github.com/"
-          fi
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
