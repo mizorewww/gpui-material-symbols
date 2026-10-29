@@ -1,35 +1,44 @@
 # Validation record — Longbridge GPUI Kit main
 
-Validated locally on macOS on 2026-10-29 using rustc/Cargo 1.99.1.
-This replaces the earlier validation against an unrelated similarly named toolkit.
+Validated locally on macOS on 2026-10-29 with rustc/Cargo 1.99.1, at the
+commit that adds this record. It replaces the earlier record, which predated
+the `material-browser` example and its dependencies.
 
-Target: https://github.com/longbridge/gpui-kit, branch `main`, commit
-`d983af26269fca2200600aced3e3f03849e60749` (also confirmed against remote main).
-Kit's own backend is `gpui-pre 0.3.10`; no competing GPUI distribution is present.
+Pinned by `Cargo.lock`:
+
+- Longbridge GPUI Kit `main` at `d983af26269fca2200600aced3e3f03849e60749`,
+  with its own backend `gpui-pre 0.3.10` (the only GPUI package in the graph).
+- `gpui-kit-material` `main` at `edf5e591915d99ef4a9fa7fdc1a94383dc8db658`,
+  fetched from Git; no sibling checkout is required.
+- Google `material-design-icons` at `10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7`
+  for fonts and supplemental SVGs (`assets/manifest.json`).
 
 | Executed check | Result |
 | --- | --- |
-| `python3 scripts/sync_assets.py --verify` | All resource SHA-256 values match; Google master still matches the pinned snapshot |
-| `cargo fmt --all -- --check` and `git diff --check` | Passed |
-| `cargo check --locked --no-default-features --all-targets` | Passed; standalone SVG functionality remains independent of Kit |
-| `cargo test --locked --all-features --tests` | 10 tests passed: 7 catalog, 2 Longbridge integration, 1 raster comparison |
-| `cargo check --locked --features showcase --example showcase` | Passed against Longbridge main |
+| `python3 scripts/sync_assets.py --verify` (also with `python3 -O`) | All ten SHA-256 values, matching font/SVG revisions, sorted in-bounds SVG index and coverage counts verified. Local only; no comparison against Google master |
+| `cargo fmt --all -- --check`, `git diff --check` | Passed |
+| `cargo test --locked --no-default-features` | 8 passed: 7 catalog, 1 raster comparison |
+| `cargo test --locked --test integration` | 2 passed |
+| `cargo test --locked --doc` | 6 README examples passed |
+| `cargo check --locked --features showcase --example showcase` | Passed |
+| `cargo test --locked --no-default-features --features material-browser --example material_symbols` | 7 passed: 3 catalog, 2 export, 2 interaction |
 | `cargo clippy --locked --all-targets --all-features -- -D warnings` | Passed |
 | `cargo build --locked --features showcase --example showcase` | Passed, including native linking |
-| Native showcase smoke check | Launched, remained alive for five seconds, no stderr, then terminated by the check |
-| Dependency graph audit | `gpui-kit` and its component/assets crates come from the same main commit, with `gpui-pre 0.3.10` |
+| `showcase --capture` and `material_symbols --capture` | Rendered through the Metal headless renderer; output byte-identical to `docs/screenshots/` |
+| `cargo metadata --locked` in a fresh clone without `../gpui-kit-material` | Resolved |
 
-Coverage was rerun in this corrected build: all 4,304 variable names × three
-styles × four representative axis sets (51,648 SVG generations), all 27,720
-supplemental SVG variants, and the union of 4,359 names. Six official raster
-fixtures verify shape and placement.
+Coverage: the union of 4,359 names; all 4,304 variable names × three styles ×
+four representative axis sets (51,648 SVG generations); all 27,720
+supplemental SVG variants. Six official raster fixtures verify shape and
+placement.
 
 The integration tests exercise Kit's `IconNamed`, conversion into component
-`Icon`, `Button::icon`, `PopupMenuItem::icon`, explicit `.component()` and
-`.embedded()`, and composition with real `gpui_kit::assets::Assets`.
-The native smoke check verifies startup, not exhaustive manual interaction or
-accessibility review.
+`Icon`, `Button::icon`, `PopupMenuItem::icon`, `.component()`, `.embedded()`,
+and composition with real `gpui_kit::assets::Assets`, including asset listing
+for unrelated prefixes. Browser interaction tests dispatch real clicks and
+input for sorting, details, search, and scroll preservation across reflow.
+Neither covers exhaustive manual interaction or accessibility review.
 
-GitHub Actions has not run. The authenticated token still lacks `workflow`
-scope; the usable workflow remains in `docs/ci.yml` until authorization completes.
-All results reported here are local results.
+Not run: GitHub Actions (the workflow in `ci.yml` is not enabled), Linux or
+Windows builds, and `scripts/sync_supplemental.py` against the upstream
+repository (only its missing-revision error path was exercised).
