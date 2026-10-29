@@ -1,41 +1,49 @@
 # gpui-material-symbols
 
-Google Material Symbols 的完整离线 Rust 图标库，直接对接 [Longbridge GPUI Kit](https://github.com/longbridge/gpui-kit) **main** 的 `IconNamed` / `component::Icon` 接口。Apache-2.0。
+在 [Longbridge GPUI Kit](https://github.com/longbridge/gpui-kit) 应用中直接使用全部 Google
+Material Symbols：4,359 个图标名称，Outlined / Rounded / Sharp 三种风格，以及连续可调的
+填充、粗细、等级和光学尺寸。`Symbol` 实现了 Kit 的 `IconNamed`，可以直接放进按钮、菜单等
+任意标准图标槽位。官方字体和 SVG 全部内嵌在库中，构建和运行时不联网、不注册系统字体。
 
-## 覆盖范围
-
-以 `google/material-design-icons` 提交 `10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7` 为可复现基准，取官方字体清单与 SVG 清单的并集：
-
-| 资源 | 覆盖 |
+| 轴 | 取值 |
 | --- | --- |
-| 统一图标名称 | **4,359**，保留官方别名 |
-| 可变字体名称 | **4,304**，每个均支持 Outlined / Rounded / Sharp |
-| SVG 独有名称 | **55**，三种风格、全部 **27,720** 个官方离散变体 |
-| 连续可变轴 | FILL `0..=1`、wght `100..=700`、GRAD `-50..=200`、opsz `20..=48` |
+| FILL 填充 | `0..=1` |
+| wght 粗细 | `100..=700` |
+| GRAD 等级 | `-50..=200` |
+| opsz 光学尺寸 | `20..=48` |
 
-三个风格与填充状态互相独立：`Rounded + filled`、`Sharp + unfilled` 等均可。所有资源随包内嵌，构建及运行无需下载字体、注册系统字体或访问网络。默认包含完整集合，原始内嵌资源约 51 MB；未做按图标裁剪。
+## 示例截图
 
-**SVG 独有图标的限制：** Google 未为这些名称提供可变字体。它们支持官方给出的离散坐标：填充 0/1、粗细 100/200/300/400/500/600/700、grade -25/0/200、光学尺寸 20/24/40/48。任意中间值不会被静默舍入；用 `is_supported()` 检查，或 `available_variants()` 枚举，生成不支持的组合返回 `Error::UnsupportedVariant`。
+`showcase` 示例：Kit `Button` 中的三种风格，以及连续变化的填充轴。
 
-此快照的三个字体实际均有四个轴。Google Fonts 在线接口另提及 `ROND`，但此 Git 发行物没有该轴，本库不伪造它。这里的完整性指上述固定官方快照，未来上游新增资源需执行同步流程。旧版 Material Icons 的独立 Two Tone 风格不属于 Material Symbols。
+<img src="docs/screenshots/showcase.png" alt="Showcase 示例：三种风格的 Kit 按钮与连续填充" width="420">
+
+`material_symbols` 示例：仿 Google Fonts Icons 的原生 GPUI 图标浏览器，可搜索全部图标、调节四个轴、
+复制 Rust 代码并导出 SVG/PNG。
+
+| 浅色 | 深色 |
+| --- | --- |
+| ![图标浏览器浅色主题](docs/screenshots/material-symbols-light.png) | ![图标浏览器深色主题](docs/screenshots/material-symbols-dark.png) |
+| **图标详情** | **搜索** |
+| ![图标详情与 GPUI 代码](docs/screenshots/material-symbols-detail.png) | ![搜索 home](docs/screenshots/material-symbols-search.png) |
 
 ## 安装
 
-当前仓库为 private，使用拥有读取权限的 Git 凭据：
+本库通过 Git 分发（仓库目前为私有，需要有读取权限的凭据）：
 
 ```toml
 [dependencies]
 gpui-material-symbols = { git = "https://github.com/mizorewww/gpui-material-symbols" }
-gpui-kit = { git = "https://github.com/longbridge/gpui-kit", branch = "main" }
 ```
 
-本库直接依赖 `longbridge/gpui-kit` 的 `main` 分支，由 Kit 管理匹配的 GPUI 后端；应用无需单独列出 GPUI。`Cargo.lock` 固定本次验证的主线提交。运行 `cargo update -p gpui-kit` 更新主线，再执行下面的验证命令。
+本库跟随 `longbridge/gpui-kit` 的 `main` 分支，并以 `gpui_material_symbols::kit` 重新导出同一个 Kit。
+使用这个导出可以保证类型一致，应用无需单独声明 GPUI。
 
-库也通过 `gpui_material_symbols::kit` 重导出同一 Kit，因此可以只声明本库依赖，避免引入不同来源或不同提交的 Kit 类型。
+## 使用
 
-## Longbridge GPUI Kit 集成
+### 注册资源
 
-应用启动时组合资源，保留 Kit 内置图标：
+启动时把 Material Symbols 与 Kit 自带资源组合起来：
 
 ```rust,no_run
 use gpui_material_symbols::{kit, MaterialSymbols};
@@ -44,66 +52,77 @@ kit::application()
     .with_assets(MaterialSymbols.with_fallback(kit::assets::Assets))
     .run(|cx| {
         kit::init(cx);
-        // 使用 kit::open_window 创建含有 Base Root 的应用窗口。
+        // kit::open_window(...)
     });
 ```
 
-`Symbol` 和配置后的 `Icon` 都实现 Kit 的 `IconNamed`。可以直接传入按钮、菜单等标准图标槽位：
+### 放进 Kit 组件
+
+`Symbol` 和配置后的 `Icon` 都可以用在任何接受图标的地方：
 
 ```rust
 use gpui_material_symbols::{kit, Style, Symbol};
 use kit::component::{button::Button, menu::PopupMenuItem};
 
-let button = Button::new("favorite").icon(
-    Symbol::FAVORITE.icon().style(Style::Rounded).filled(true),
-);
 let home = Button::new("home").icon(Symbol::HOME);
-let menu = PopupMenuItem::new("Settings").icon(Symbol::SETTINGS);
+let favorite = Button::new("favorite")
+    .icon(Symbol::FAVORITE.icon().style(Style::Rounded).filled(true));
+let settings = PopupMenuItem::new("Settings").icon(Symbol::SETTINGS);
 ```
 
-`.component()` 返回 `kit::component::Icon`，使用 Kit 的主题、尺寸与图标路径解析机制。`.embedded()?` 直接把 SVG 数据放入组件，无需注册资源源，并立即检查是否存在指定离散变体。`.svg()` 仅在需要底层 `Svg` 元素时使用。
+### 风格与可变轴
 
 ```rust
 use gpui_material_symbols::{kit, Axes, Style, Symbol};
-let custom = Symbol::HOME.icon()
+
+let icon = Symbol::HOME
+    .icon()
     .style(Style::Sharp)
-    .axes(Axes::new(0.5, 550.0, 25.0, 32.0).unwrap());
-let themed: kit::component::Icon = custom.component();
-let standalone: kit::component::Icon = custom.embedded().unwrap();
+    .axes(Axes::new(0.5, 550.0, 25.0, 32.0).unwrap()); // fill, weight, grade, optical size
+
+let themed: kit::component::Icon = icon.component();          // 经由已注册的资源加载
+let embedded: kit::component::Icon = icon.embedded().unwrap(); // SVG 直接内嵌，无需注册资源
 ```
 
-视觉尺寸与光学尺寸独立，改变布局大小不会暗中改变图标形状。建议在按钮等父控件上设置可访问名称。完整原生示例使用 Kit 的 `application`、`init`、`open_window` 和主题：
+`Axes::new` 会拒绝越界值和非有限值。光学尺寸只影响图标造型，与显示尺寸无关，
+显示尺寸仍由 Kit 的 `.size()` 等方法控制。
 
-```sh
-cargo run --features showcase --example showcase
-```
-
-## 查找与枚举
+### 按名称查找
 
 ```rust
-use gpui_material_symbols::{Style, Symbol};
+use gpui_material_symbols::Symbol;
 
 let home: Symbol = "home".parse().unwrap();
 assert_eq!(home, Symbol::HOME);
-assert!(home.is_variable());
 assert!(Symbol::named("does_not_exist").is_none());
 
-for symbol in Symbol::all().filter(|s| s.name().contains("arrow")) {
-    println!("{}", symbol.name());
-}
-
-// 名称以数字开头时常量加前导下划线，例如 Symbol::_10K。
-let supplemental = Symbol::APP_SPARK;
-assert!(!supplemental.is_variable());
-for icon in supplemental.available_variants() {
-    assert!(icon.is_supported());
-}
-assert!(supplemental.icon().style(Style::Rounded).to_svg().is_ok());
+let arrows = Symbol::all().filter(|s| s.name().contains("arrow")).count();
+assert!(arrows > 0);
 ```
 
-生成的常量由官方清单自动构建，不需要手工维护数千个枚举项。`codepoint(style)` 对 SVG 独有名称返回 `None`。
+常量名是官方名称的大写形式；以数字开头的名称加前导下划线，例如 `Symbol::_10K`。
 
-## 不依赖 Kit 的 SVG 导出
+### 仅有 SVG 的图标
+
+有 55 个图标（例如 `Symbol::APP_SPARK`）只有官方 SVG，没有可变字体字形，因此只支持官方离散取值：
+填充 0/1，粗细 100–700 中的整百值，等级 -25/0/200，光学尺寸 20/24/40/48。
+不支持的组合不会被悄悄换成近似值：
+
+```rust
+use gpui_material_symbols::{Axes, Error, Symbol};
+
+let spark = Symbol::APP_SPARK;
+assert!(!spark.is_variable());
+assert!(spark.available_variants().all(|icon| icon.is_supported()));
+
+let odd = spark.icon().axes(Axes::new(0.0, 450.0, 0.0, 24.0).unwrap());
+assert!(!odd.is_supported());
+assert_eq!(odd.to_svg(), Err(Error::UnsupportedVariant));
+```
+
+`.component()` 按路径加载，遇到这类组合时只会显示为空白；用 `.embedded()` 可以在构造时就拿到错误。
+
+### 不依赖 Kit，只导出 SVG
 
 ```toml
 [dependencies]
@@ -112,55 +131,29 @@ gpui-material-symbols = { git = "https://github.com/mizorewww/gpui-material-symb
 
 ```rust
 use gpui_material_symbols::{Style, Symbol};
+
 let svg = Symbol::HOME.icon().style(Style::Rounded).to_svg().unwrap();
-assert!(svg.contains("<svg"));
+assert!(svg.starts_with("<svg"));
 ```
 
+## 运行示例
+
 ```sh
+# Kit 集成示例
+cargo run --features showcase --example showcase
+
+# 图标浏览器（使用 gpui-kit-material 组件）
+cargo run --no-default-features --features material-browser --example material_symbols
+
+# 命令行导出 SVG
 cargo run --no-default-features --example export -- home rounded > home.svg
 ```
 
-`asset_path()` 是确定性的命名空间路径，包含名称、风格和四个轴；可用 `Icon::from_asset_path()` 反向解析。GPUI 依据该路径缓存渲染结果。资源加载器本身不持有无限增长的变体缓存。`list()` 仅列出每种风格的默认坐标，因为连续轴的所有取值无法有限枚举。
+## 更多
 
-## 验证与上游同步
+- [维护指南](docs/maintenance.md)：验证命令、更新 Kit 与 Google 资源、重新生成截图
+- [验证记录](docs/validation.md) · [调研记录](docs/research.md) · [图标浏览器说明](docs/MATERIAL_SYMBOLS.md)
+- 图标数据固定在 `google/material-design-icons` 提交 `10ecc14`，来源与校验值见 `assets/manifest.json`
 
-```sh
-python3 scripts/sync_assets.py --verify
-cargo fmt --all -- --check
-cargo test --no-default-features
-cargo test --test integration
-cargo check --features showcase --example showcase
-cargo clippy --all-targets --all-features -- -D warnings
-```
-
-测试核对完整名称清单、三种字体轴、每个可变图标的四组参数（51,648 次 SVG 生成）、全部 27,720 个额外 SVG 变体、真实几何变化、坐标系、非法输入与现有资源源的组合行为。
-
-更新资源时固定完整提交 SHA，先同步字体，再从同一上游 Git 提交抽取额外 SVG：
-
-```sh
-git clone --depth 1 --no-checkout https://github.com/google/material-design-icons .research/material-design-icons
-python3 scripts/sync_assets.py --revision <full-40-character-commit-sha>
-python3 scripts/sync_supplemental.py .research/material-design-icons
-python3 scripts/sync_assets.py --verify
-cargo test --no-default-features
-```
-
-已有 clone 时先 fetch 目标提交。无需 checkout 数百万个 SVG 文件；补充提取器直接读取 Git objects。更新后审核 `assets/manifest.json`、覆盖统计及测试中的快照计数，再提交资源变化。下载脚本仅用于维护，Cargo 构建不会运行它们。
-
-可用的 GitHub Actions 配置保存在 [CI 模板](docs/ci.yml)。当前创建仓库的令牌没有 `workflow` scope，因此未启用远程 Actions；以后具备该权限时可将模板移至 `.github/workflows/ci.yml`。上述验收命令均可本地执行。
-
-参见 [调查记录](docs/research.md)。本项目代码与 Google 资源均按 Apache-2.0 分发；上游许可证保存在 `assets/LICENSE`，归属信息见 `NOTICE`。
-
-## Google Fonts Material Symbols browser
-
-The native reference browser lives in this repository and consumes reusable
-components from the sibling `gpui-kit-material`. Clone both repositories next
-to each other, then run from `gpui-material-symbols`:
-
-```sh
-cargo run --no-default-features --features material-browser --example material_symbols
-```
-
-See [the browser documentation](docs/MATERIAL_SYMBOLS.md) for features, native
-captures and tests. The `showcase` example continues to demonstrate the
-Longbridge GPUI Kit main integration.
+本项目以 Apache-2.0 许可发布。Google 的图标资源同为 Apache-2.0（`assets/LICENSE`）；
+示例中的第三方资源见 [NOTICE](NOTICE)。
