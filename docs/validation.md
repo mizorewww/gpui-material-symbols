@@ -21,7 +21,7 @@ Pinned by `Cargo.lock`:
 | `cargo test --locked --test integration` | 2 passed |
 | `cargo test --locked --doc` | 12 README examples passed (6 in `README.md`, 6 in `README.zh-CN.md`) |
 | `cargo check --locked --features showcase --example showcase` | Passed |
-| `cargo test --locked --no-default-features --features material-browser --example material_symbols` | 7 passed: 3 catalog, 2 export, 2 interaction |
+| `cargo test --locked --no-default-features --features material-browser --example material_symbols` | 10 passed: 3 catalog, 2 export, 5 interaction |
 | `cargo clippy --locked --all-targets --all-features -- -D warnings` | Passed |
 | `cargo build --locked --features showcase --example showcase` | Passed, including native linking |
 | `showcase --capture` and `material_symbols --capture` | Rendered through the Metal headless renderer; output byte-identical to `docs/screenshots/` |
@@ -36,8 +36,9 @@ The integration tests exercise Kit's `IconNamed`, conversion into component
 `Icon`, `Button::icon`, `PopupMenuItem::icon`, `.component()`, `.embedded()`,
 and composition with real `gpui_kit::assets::Assets`, including asset listing
 for unrelated prefixes. Browser interaction tests dispatch real clicks and
-input to open and close details, search and clear the search, and check the
-name sort and that resizing the window keeps the scroll position. The native
+input for details, sort, style, fill, theme and search, and check the app-bar
+drag area, the details sheet's effect on the grid and scroll preservation on
+resize. The native
 browser window was launched and stayed alive for six seconds. Neither covers
 exhaustive manual interaction or accessibility review.
 
