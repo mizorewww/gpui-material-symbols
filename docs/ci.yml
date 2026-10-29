@@ -10,7 +10,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Authorize private Git dependencies
-        run: git config --global url."https://x-access-token:${{ secrets.DEPENDENCY_READ_TOKEN }}@github.com/".insteadOf "https://github.com/"
+        # Fork pull requests get no secrets; leave public fetches untouched then.
+        env:
+          DEPENDENCY_READ_TOKEN: ${{ secrets.DEPENDENCY_READ_TOKEN }}
+        run: |
+          if [ -n "$DEPENDENCY_READ_TOKEN" ]; then
+            git config --global url."https://x-access-token:${DEPENDENCY_READ_TOKEN}@github.com/".insteadOf "https://github.com/"
+          fi
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
@@ -22,7 +28,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Authorize private Git dependencies
-        run: git config --global url."https://x-access-token:${{ secrets.DEPENDENCY_READ_TOKEN }}@github.com/".insteadOf "https://github.com/"
+        # Fork pull requests get no secrets; leave public fetches untouched then.
+        env:
+          DEPENDENCY_READ_TOKEN: ${{ secrets.DEPENDENCY_READ_TOKEN }}
+        run: |
+          if [ -n "$DEPENDENCY_READ_TOKEN" ]; then
+            git config --global url."https://x-access-token:${DEPENDENCY_READ_TOKEN}@github.com/".insteadOf "https://github.com/"
+          fi
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
