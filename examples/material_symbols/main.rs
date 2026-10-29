@@ -874,8 +874,30 @@ impl Render for Browser {
         let sidebar = if self.filters { 320. } else { 0. };
         let columns = ((width - 96. - sidebar - 100.) / 132.).floor().max(1.) as usize;
         if columns != self.columns {
+            // Reflowing rows must not throw the reader back to the top of the catalog.
+            let top = self
+                .rows
+                .get(self.list.logical_scroll_top().item_ix)
+                .cloned();
             self.columns = columns;
             self.rebuild(cx);
+            let item_ix = match top {
+                Some(Row::Heading(name)) => self
+                    .rows
+                    .iter()
+                    .position(|row| matches!(row, Row::Heading(n) if *n == name)),
+                Some(Row::Icons(old)) => self
+                    .rows
+                    .iter()
+                    .position(|row| matches!(row, Row::Icons(r) if r.contains(&old[0]))),
+                _ => None,
+            };
+            if let Some(item_ix) = item_ix {
+                self.list.scroll_to(ListOffset {
+                    item_ix,
+                    offset_in_item: px(0.),
+                });
+            }
         }
         let weak = cx.entity().downgrade();
         let list_state = self.list.clone();
@@ -1067,6 +1089,44 @@ mod interaction_tests {
         });
         cx.simulate_click(point, Modifiers::default());
         draw(cx);
+    }
+    #[gpui::test]
+    fn reflowing_columns_keeps_scroll_position(cx: &mut TestAppContext) {
+        cx.update(|cx| {
+            gpui_base::init(cx);
+            gpui_kit_material::init(cx);
+            cx.set_reduce_motion(true);
+        });
+        let (view, cx) = cx.add_window_view(Browser::new);
+        draw(cx);
+        let entry = view.update(cx, |v, _| {
+            let ix = v
+                .rows
+                .iter()
+                .rposition(|r| matches!(r, Row::Icons(_)))
+                .unwrap()
+                / 2;
+            v.list.scroll_to(ListOffset {
+                item_ix: ix,
+                offset_in_item: px(0.),
+            });
+            let Row::Icons(row) = &v.rows[ix] else {
+                unreachable!()
+            };
+            row[0]
+        });
+        draw(cx);
+        let columns = view.read_with(cx, |v, _| v.columns);
+        view.update(cx, |v, cx| {
+            v.filters = !v.filters;
+            cx.notify();
+        });
+        draw(cx);
+        view.read_with(cx, |v, _| {
+            assert_ne!(v.columns, columns, "toggling filters must reflow the grid");
+            let top = v.list.logical_scroll_top().item_ix;
+            assert!(matches!(&v.rows[top], Row::Icons(r) if r.contains(&entry)));
+        });
     }
     #[gpui::test]
     fn selection_sheet_sort_and_search_are_connected(cx: &mut TestAppContext) {
