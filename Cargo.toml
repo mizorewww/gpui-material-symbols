@@ -16,7 +16,7 @@ gpui-kit = ["dep:gpui-kit", "dep:anyhow"]
 showcase = ["gpui-kit"]
 # Headless `showcase --capture`: enables test-support on Kit's own gpui-pre backend.
 showcase-capture = ["showcase", "dep:gpui", "dep:gpui_platform"]
-material-browser = ["dep:gpui", "dep:gpui_platform", "dep:gpui-base", "dep:gpui-kit-material", "dep:image", "dep:tiny-skia"]
+material-browser = ["dep:gpui", "dep:gpui_platform", "dep:gpui-base", "dep:gpui-kit-material", "dep:tiny-skia"]
 
 [dependencies]
 ttf-parser = { version = "0.25", default-features = false, features = ["std", "variable-fonts"] }
@@ -30,7 +30,6 @@ gpui = { package = "gpui-pre", version = "=0.3.10", optional = true, features = 
 gpui_platform = { package = "gpui-pre-platform", version = "=0.3.10", optional = true, features = ["font-kit", "x11", "wayland", "runtime_shaders", "test-support"] }
 gpui-base = { version = "=0.8.1", optional = true, features = ["test-support"] }
 gpui-kit-material = { git = "https://github.com/mizorewww/gpui-kit-material", branch = "main", optional = true }
-image = { version = "0.25", default-features = false, optional = true }
 tiny-skia = { version = "0.11", features = ["png-format"], optional = true }
 
 [dev-dependencies]

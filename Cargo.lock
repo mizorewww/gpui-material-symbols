@@ -2319,7 +2319,6 @@ dependencies = [
  "gpui-kit-material",
  "gpui-pre",
  "gpui-pre-platform",
- "image",
  "resvg 0.46.0",
  "roxmltree 0.21.2",
  "tiny-skia",

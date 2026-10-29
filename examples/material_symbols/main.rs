@@ -15,24 +15,6 @@ use gpui_kit_material::{icons::Assets, prelude::*, theme};
 use gpui_material_symbols::{Icon as SymbolIcon, Style, Symbol};
 use std::{borrow::Cow, collections::BTreeSet, path::Path};
 
-fn brand_image(dark: bool) -> std::sync::Arc<RenderImage> {
-    let source = include_str!("assets/google-fonts.svg")
-        .replace("currentColor", if dark { "#e3e3e3" } else { "#444746" });
-    let tree = resvg::usvg::Tree::from_str(&source, &Default::default()).unwrap();
-    let mut pixmap = tiny_skia::Pixmap::new(350, 62).unwrap();
-    resvg::render(
-        &tree,
-        tiny_skia::Transform::from_scale(2., 2.),
-        &mut pixmap.as_mut(),
-    );
-    let mut bytes = pixmap.data().to_vec();
-    for pixel in bytes.as_chunks_mut::<4>().0 {
-        pixel.swap(0, 2);
-    }
-    std::sync::Arc::new(RenderImage::new(vec![image::Frame::new(
-        image::RgbaImage::from_raw(350, 62, bytes).unwrap(),
-    )]))
-}
 struct SymbolsSource;
 impl AssetSource for SymbolsSource {
     fn load(&self, path: &str) -> Result<Option<Cow<'static, [u8]>>> {
@@ -104,8 +86,6 @@ enum Row {
     Empty,
 }
 struct Browser {
-    logo: std::sync::Arc<RenderImage>,
-    dark_logo: std::sync::Arc<RenderImage>,
     entries: Vec<Entry>,
     rows: Vec<Row>,
     list: ListState,
@@ -175,8 +155,6 @@ impl Browser {
             }));
         }
         let mut this = Self {
-            logo: brand_image(false),
-            dark_logo: brand_image(true),
             entries: catalog::entries(),
             rows: vec![],
             list: ListState::new(0, ListAlignment::Top, px(500.)),
@@ -555,16 +533,6 @@ impl Browser {
                     .items_center()
                     .gap(rem(24.))
                     .h(rem(56.))
-                    .child(
-                        img(if self.dark {
-                            self.dark_logo.clone()
-                        } else {
-                            self.logo.clone()
-                        })
-                        .w(rem(175.))
-                        .h(rem(31.))
-                        .flex_shrink_0(),
-                    )
                     .child(
                         div().flex_1().min_w_0().child(
                             SearchField::new(&self.search)

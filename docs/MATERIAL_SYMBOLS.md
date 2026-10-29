@@ -77,10 +77,6 @@ position when the grid reflows. Export tests decode the PNG and check dimensions
   Whitespace is normalized so tags cannot corrupt TSV columns.
 - Google Sans Flex: [google/fonts](https://github.com/google/fonts/tree/main/ofl/googlesansflex),
   distributed with `assets/OFL.txt` under SIL Open Font License 1.1.
-- Google Fonts logo: SVG from the reference site's header, retained solely to
-  reproduce the requested reference example. Google branding is not this
-  project's identity and is not covered by its Apache-2.0 license. This
-  example is not affiliated with or endorsed by Google.
 
 This repository remains Apache 2.0; the reusable Material kit remains MIT.
 Third-party assets retain their own terms.
