@@ -2,7 +2,7 @@
 //!
 //! `cargo run --no-default-features --features material-browser --example material_symbols`
 //!
-//! The `web` crate builds the same browser for the web with `run_with_assets`.
+//! The `web` crate builds the same browser for the web with `run_web`.
 // GPUI macros prefer an installed Kit facade even when its optional feature is
 // disabled. Keep their generated path on the same backend for this example.
 #[cfg(not(feature = "gpui-kit"))]
@@ -828,21 +828,19 @@ mod loader {
     }
 }
 
-/// Downloads the assets the web build does not embed when an icon first needs
-/// one, and redraws when it arrives. A failed download is reported and retried
-/// after a pause.
+/// Asks the page for the assets the web build does not embed when an icon
+/// first needs one, and redraws when it arrives. The page downloads them in
+/// resumable chunks; a failure is reported and retried after a pause.
 #[cfg(target_family = "wasm")]
 pub mod loader {
-    use futures::AsyncReadExt as _;
-    use gpui::{AsyncApp, SharedString, http_client::AsyncBody};
+    use gpui::{AsyncApp, SharedString};
     use gpui_material_symbols::Asset;
-    use std::{cell::RefCell, collections::HashMap, time::Duration};
+    use std::{cell::RefCell, time::Duration};
 
     const RETRY: Duration = Duration::from_secs(5);
 
     struct Loader {
         app: AsyncApp,
-        urls: HashMap<Asset, String>,
         requested: Vec<Asset>,
         failure: Option<SharedString>,
     }
@@ -851,15 +849,9 @@ pub mod loader {
         static LOADER: RefCell<Option<Loader>> = const { RefCell::new(None) };
     }
 
-    /// Where each asset is served, by its file name.
-    pub fn init(urls: &HashMap<String, String>, cx: &gpui::App) {
-        let urls = Asset::ALL
-            .into_iter()
-            .filter_map(|asset| Some((asset, urls.get(asset.file_name())?.clone())))
-            .collect();
+    pub fn init(cx: &gpui::App) {
         LOADER.set(Some(Loader {
             app: cx.to_async(),
-            urls,
             requested: Vec::new(),
             failure: None,
         }));
@@ -881,21 +873,33 @@ pub mod loader {
                 return;
             }
             loader.requested.push(asset);
-            let Some(url) = loader.urls.get(&asset).cloned() else {
-                log::error!("no URL for {}", asset.file_name());
-                return;
-            };
             let app = loader.app.clone();
             app.foreground_executor()
                 .spawn({
                     let app = app.clone();
                     async move {
-                        let result = match download(&app, &url).await {
-                            Ok(bytes) => asset.provide(bytes).map_err(anyhow::Error::from),
+                        let result = match super::web::fetch_asset(asset.file_name()).await {
+                            Ok(bytes) => asset.provide(bytes).map_err(|e| e.to_string()),
                             Err(error) => Err(error),
                         };
+                        if let Err(error) = &result
+                            && error.starts_with("reload:")
+                        {
+                            // The site was redeployed; retrying cannot help.
+                            log::error!("{}: {error}", asset.file_name());
+                            LOADER.with_borrow_mut(|loader| {
+                                if let Some(loader) = loader {
+                                    loader.failure = Some(
+                                        "The site was updated. Reload the page to see these icons."
+                                            .into(),
+                                    );
+                                }
+                            });
+                            app.update(|cx| cx.refresh_windows());
+                            return;
+                        }
                         if let Err(error) = result {
-                            log::error!("{url}: {error:#}");
+                            log::error!("{}: {error}", asset.file_name());
                             LOADER.with_borrow_mut(|loader| {
                                 if let Some(loader) = loader {
                                     loader.failure =
@@ -917,26 +921,28 @@ pub mod loader {
         });
         false
     }
-
-    async fn download(app: &AsyncApp, url: &str) -> anyhow::Result<Vec<u8>> {
-        let client = app.update(|cx| cx.http_client());
-        let mut response = client.get(url, AsyncBody::default(), true).await?;
-        anyhow::ensure!(response.status().is_success(), "HTTP {}", response.status());
-        let mut bytes = Vec::new();
-        response.body_mut().read_to_end(&mut bytes).await?;
-        Ok(bytes)
-    }
 }
 
 #[cfg(target_family = "wasm")]
 mod web {
     use wasm_bindgen::prelude::*;
 
+    /// The asset file `name`, downloaded by the page (`web/www/main.js`).
+    pub async fn fetch_asset(name: &str) -> Result<Vec<u8>, String> {
+        let bytes = wasm_bindgen_futures::JsFuture::from(fetch_asset_promise(name))
+            .await
+            .map_err(|error| error.as_string().unwrap_or_else(|| format!("{error:?}")))?;
+        Ok(js_sys::Uint8Array::new(&bytes).to_vec())
+    }
+
     #[wasm_bindgen]
     extern "C" {
         /// Saves `bytes` through the browser's download, defined by the page.
         #[wasm_bindgen(js_name = materialSymbolsDownload)]
         pub fn download(name: &str, mime: &str, bytes: &[u8]);
+        /// Resolves to the asset's bytes; see `materialSymbolsFetchAsset`.
+        #[wasm_bindgen(js_name = materialSymbolsFetchAsset)]
+        fn fetch_asset_promise(name: &str) -> js_sys::Promise;
     }
 }
 
@@ -958,11 +964,11 @@ fn run(application: Application) {
     start(application, |_| {});
 }
 
-/// Opens the browser on the web, downloading each asset from its URL in
-/// `urls`, keyed by file name, when an icon first needs it.
+/// Opens the browser on the web, which asks the page for each asset when an
+/// icon first needs it.
 #[cfg(target_family = "wasm")]
-pub fn run_with_assets(application: Application, urls: std::collections::HashMap<String, String>) {
-    start(application, move |cx| loader::init(&urls, cx));
+pub fn run_web(application: Application) {
+    start(application, |cx| loader::init(cx));
 }
 
 fn start(application: Application, setup: impl FnOnce(&mut App) + 'static) {

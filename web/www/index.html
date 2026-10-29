@@ -11,11 +11,7 @@
     <meta property="og:url" content="https://m3symbols.mizore.blog/">
     <link rel="canonical" href="https://m3symbols.mizore.blog/">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-    <!-- Download the module and the default style's font in parallel; the
-         other styles and the SVG-only pack load when first shown. -->
     <link rel="modulepreload" href="%JS%">
-    <link rel="preload" href="%WASM%" as="fetch" type="application/wasm" crossorigin>
-    <link rel="preload" href="%OUTLINED%" as="fetch" crossorigin>
     <style>
       /* The browser's own canvas and ink colors, so the loading screen does
          not flash a different color before the first frame. */
@@ -60,6 +56,14 @@
       @keyframes spin { to { transform: rotate(360deg); } }
       @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
       .hint { margin-top: 4px; opacity: .7; font-size: 13px; }
+      .bar {
+        height: 4px;
+        margin: 16px auto 0;
+        border-radius: 2px;
+        overflow: hidden;
+        background: color-mix(in srgb, var(--primary) 20%, transparent);
+      }
+      .bar > div { height: 100%; width: 0; background: var(--primary); transition: width .2s; }
       .error { pointer-events: auto; }
       .error a { color: inherit; }
       /* A Material 3 basic dialog in the app's palette. */
@@ -102,9 +106,9 @@
   </head>
   <body>
     <div id="loading" role="status">
-      <div class="spinner"></div>
-      <p>Loading Material Symbols…</p>
-      <p class="hint">Icons appear as soon as their font arrives.</p>
+      <p id="loading-text">Loading Material Symbols…</p>
+      <div class="bar" role="progressbar" aria-label="Download" aria-valuemin="0" aria-valuemax="100"><div></div></div>
+      <p class="hint" id="loading-hint">About 8 MB on the first visit; later visits load from the cache.</p>
     </div>
     <dialog id="star" aria-labelledby="star-title" aria-describedby="star-text">
       <h2 id="star-title">Star on GitHub</h2>

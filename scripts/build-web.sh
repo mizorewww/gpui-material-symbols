@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Builds the Material Symbols browser for the web into web/dist.
 #
-# The module, its JavaScript and the four assets the web build downloads at
-# runtime go to dist/m/ under content-hashed names, served as immutable.
-# Large files are stored only as Brotli (`NAME.br`); web/worker.js serves them
-# with `Content-Encoding: br`. index.html and main.js are templates whose
-# `%NAME%` placeholders become those hashed paths.
+# The module and the four assets the web build downloads at runtime are split
+# into 2 MiB chunks, each Brotli-compressed and stored as `NAME.br`; web/worker.js
+# serves them with `Content-Encoding: br`. Chunks and the module's JavaScript
+# go to dist/m/ under content-hashed names and are served as immutable, so a
+# dropped connection or a reload only fetches the chunks still missing.
+# index.html and main.js are templates: `%JS%` and `%MANIFEST%` become the
+# JavaScript's path and the chunk manifest.
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -17,41 +19,50 @@ fi
 command -v brotli >/dev/null || { echo "Install brotli" >&2; exit 1; }
 
 cargo build --locked --release -p gpui-material-symbols-web --target wasm32-unknown-unknown
-dist=web/dist
 bindgen="$(mktemp -d)"
 trap 'rm -rf "$bindgen"' EXIT
 wasm-bindgen target/wasm32-unknown-unknown/release/gpui_material_symbols_web.wasm \
   --target web --no-typescript --out-dir "$bindgen"
-rm -rf "$dist"
-mkdir -p "$dist/m"
-cp web/www/favicon.svg "$dist/"
 
-# Copies $1 to dist/m/<stem>.<hash>.<ext>, Brotli-compressed when $2 is "br",
-# and prints the served path.
-publish() {
-  local file="$1" name stem ext hash
-  name="$(basename "$file")"
-  stem="${name%.*}"
-  ext="${name##*.}"
-  hash="$(shasum -a 256 "$file" | cut -c1-12)"
-  if [[ "$2" == br ]]; then
-    brotli -q 11 -c "$file" > "$dist/m/$stem.$hash.$ext.br"
-  else
-    cp "$file" "$dist/m/$stem.$hash.$ext"
-  fi
-  echo "/m/$stem.$hash.$ext"
+python3 -I - "$bindgen" <<'PY'
+import hashlib, json, pathlib, shutil, subprocess, sys
+
+CHUNK = 2 * 1024 * 1024
+bindgen = pathlib.Path(sys.argv[1])
+dist = pathlib.Path("web/dist")
+shutil.rmtree(dist, ignore_errors=True)
+(dist / "m").mkdir(parents=True)
+shutil.copy("web/www/favicon.svg", dist)
+
+def chunked(path):
+    data = path.read_bytes()
+    digest = hashlib.sha256(data).hexdigest()[:12]
+    chunks = []
+    for index in range(0, len(data), CHUNK):
+        name = f"{path.stem}.{digest}.{index // CHUNK}"
+        compressed = subprocess.run(
+            ["brotli", "-q", "11", "-c"], input=data[index:index + CHUNK],
+            capture_output=True, check=True).stdout
+        (dist / "m" / f"{name}.br").write_bytes(compressed)
+        chunks.append(f"/m/{name}")
+    return {"size": len(data), "chunks": chunks}
+
+js = bindgen / "gpui_material_symbols_web.js"
+js_name = f"{js.stem}.{hashlib.sha256(js.read_bytes()).hexdigest()[:12]}.js"
+shutil.copy(js, dist / "m" / js_name)
+manifest = {
+    "module": chunked(bindgen / "gpui_material_symbols_web_bg.wasm"),
+    "assets": {
+        name: chunked(pathlib.Path("assets") / name)
+        for name in ["MaterialSymbolsOutlined.ttf", "MaterialSymbolsRounded.ttf",
+                     "MaterialSymbolsSharp.ttf", "supplemental.bin"]
+    },
 }
-
-wasm="$(publish "$bindgen/gpui_material_symbols_web_bg.wasm" br)"
-js="$(publish "$bindgen/gpui_material_symbols_web.js" plain)"
-outlined="$(publish assets/MaterialSymbolsOutlined.ttf br)"
-rounded="$(publish assets/MaterialSymbolsRounded.ttf br)"
-sharp="$(publish assets/MaterialSymbolsSharp.ttf br)"
-supplemental="$(publish assets/supplemental.bin br)"
-assets="[\"MaterialSymbolsOutlined.ttf\", \"$outlined\", \"MaterialSymbolsRounded.ttf\", \"$rounded\", \"MaterialSymbolsSharp.ttf\", \"$sharp\", \"supplemental.bin\", \"$supplemental\"]"
-
-for page in index.html main.js; do
-  sed -e "s#%WASM%#$wasm#g" -e "s#%JS%#$js#g" -e "s#%OUTLINED%#$outlined#g" \
-    -e "s#%ASSETS%#$assets#g" "web/www/$page" > "$dist/$page"
-done
-ls -l "$dist/m"
+for page in ["index.html", "main.js"]:
+    text = (pathlib.Path("web/www") / page).read_text()
+    text = text.replace("%JS%", f"/m/{js_name}").replace("%MANIFEST%", json.dumps(manifest))
+    (dist / page).write_text(text)
+for name, entry in [("module", manifest["module"]), *manifest["assets"].items()]:
+    compressed = sum((dist / f"{c[1:]}.br").stat().st_size for c in entry["chunks"])
+    print(f"{name}: {entry['size']:,} bytes, {len(entry['chunks'])} chunks, {compressed:,} as Brotli")
+PY
