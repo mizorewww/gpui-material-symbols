@@ -5,8 +5,9 @@ WebAssembly with GPUI's web platform. It is live at
 <https://m3symbols.mizore.blog>.
 
 The `web` crate includes `examples/material_symbols/main.rs` unchanged apart
-from two web paths: exports download through the page instead of a save dialog,
-and the app registers IBM Plex Sans (SIL OFL, `web/fonts/`), GPUI Web's default
+from three web paths: the app bar links the GitHub repository, exports
+download through the page instead of a save dialog, and the app registers IBM
+Plex Sans (SIL OFL, `web/fonts/`), GPUI Web's default
 UI font. It renders through WebGPU; GPUI Web can fall back to WebGL 2, which
 this site has not been tested with.
 

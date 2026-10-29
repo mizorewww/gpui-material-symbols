@@ -1,0 +1,9 @@
+{
+  "github-mark.svg": {
+    "source": "https://unpkg.com/@primer/octicons@19.42.0/build/svg/mark-github-24.svg",
+    "sha256": "bce494189797623c34e39a41c2c38a132bdca23ce4e6ac06b70116ed7e91ce26",
+    "license": "github-mark.LICENSE (MIT, Primer Octicons)",
+    "trademark": "The GitHub mark is a GitHub trademark, used under GitHub's logo guidelines to link to this project's repository",
+    "purpose": "The web build's repository link"
+  }
+}

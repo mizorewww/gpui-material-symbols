@@ -28,10 +28,20 @@ const GRADES: [f32; 3] = [-25., 0., 200.];
 const OPTICAL_SIZES: [f32; 4] = [20., 24., 40., 48.];
 const DEFAULT_COLOR: &str = "#1F1F1F";
 const SHEET: f32 = 360.;
+/// Linked from the web build's app bar.
+const REPOSITORY: &str = "https://github.com/mizorewww/gpui-material-symbols";
+/// The GitHub mark (Primer Octicons, MIT) for that link.
+const GITHUB_MARK: &str = "github-mark.svg";
 
 struct SymbolsSource;
 impl AssetSource for SymbolsSource {
     fn load(&self, path: &str) -> Result<Option<Cow<'static, [u8]>>> {
+        #[cfg(target_family = "wasm")]
+        if path == GITHUB_MARK {
+            return Ok(Some(Cow::Borrowed(include_bytes!(
+                "assets/github-mark.svg"
+            ))));
+        }
         if !path.starts_with("material-symbols/") {
             return Ok(None);
         }
@@ -334,6 +344,21 @@ impl Browser {
                     cx.notify();
                 })),
             ))
+            .when(cfg!(target_family = "wasm"), |bar| {
+                bar.child(title_bar_control(
+                    material_button("github", ButtonVariant::Tonal)
+                        .accessibility_label(format!("Source code on GitHub: {REPOSITORY}"))
+                        .child(
+                            svg()
+                                .path(GITHUB_MARK)
+                                .size(rem(18.))
+                                .text_color(color(ColorRole::ON_SECONDARY_CONTAINER))
+                                .flex_shrink_0(),
+                        )
+                        .child("GitHub")
+                        .on_click(|_, _, cx| cx.open_url(REPOSITORY)),
+                ))
+            })
     }
 
     /// Style, fill, the three numeric axes and reset.
