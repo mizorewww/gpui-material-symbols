@@ -21,18 +21,15 @@ default = ["gpui-kit", "embed-assets"]
 embed-assets = []
 gpui-kit = ["dep:gpui-kit", "dep:anyhow"]
 showcase = ["gpui-kit"]
+# Select the same engine for core, platforms and all Kit presentation layers.
+gpui-fast = ["gpui-kit", "gpui-kit/gpui-fast"]
 # Headless `showcase --capture`: enables test-support on Kit's own gpui-pre backend.
-showcase-capture = ["showcase", "gpui-kit/test-support", "dep:gpui", "dep:gpui_platform"]
+showcase-capture = ["showcase", "gpui-kit/test-support"]
 
 [dependencies]
 ttf-parser = { version = "0.25", default-features = false, features = ["std", "variable-fonts"] }
 anyhow = { version = "1", optional = true }
 gpui-kit = { git = "https://github.com/longbridge/gpui-kit", branch = "main", optional = true }
-
-# Native showcase capture uses Kit's exact GPUI snapshot.
-# Material consumer dependencies belong only to browser/ and web/.
-gpui = { package = "gpui-pre", version = "=0.3.10", optional = true, features = ["test-support"] }
-gpui_platform = { package = "gpui-pre-platform", version = "=0.3.10", optional = true, features = ["font-kit", "x11", "wayland", "runtime_shaders", "test-support"] }
 
 [dev-dependencies]
 roxmltree = "0.21"
@@ -77,6 +74,9 @@ gpui-kit = { path = "../gpui-kit-material/vendor/gpui-kit" }
 gpui-base = { path = "../gpui-kit-material/vendor/gpui-base" }
 
 [patch.crates-io]
+gpui-fast = { path = "../gpui-kit-material/vendor/gpui-fast" }
+gpui-fast-web = { path = "../gpui-kit-material/vendor/gpui-fast-web" }
+gpui-fast-apple = { path = "../gpui-kit-material/vendor/gpui-fast-apple" }
 gpui-base = { path = "../gpui-kit-material/vendor/gpui-base" }
 gpui-pre = { path = "../gpui-kit-material/vendor/gpui-pre" }
 gpui-pre-web = { path = "../gpui-kit-material/vendor/gpui-pre-web" }

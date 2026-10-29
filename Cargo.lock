@@ -2143,8 +2143,6 @@ dependencies = [
 [[package]]
 name = "gpui-fast"
 version = "0.1.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87b6d2f355531132e8f1ec357cb23901aba1d1b3e522260822ae199f02ec32da"
 dependencies = [
  "accesskit",
  "anyhow",
@@ -2200,6 +2198,7 @@ dependencies = [
  "taffy",
  "thiserror 2.0.21",
  "ttf-parser",
+ "unicode-segmentation",
  "url",
  "usvg 0.46.0",
  "uuid",
@@ -2212,8 +2211,6 @@ dependencies = [
 [[package]]
 name = "gpui-fast-apple"
 version = "0.1.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5f0aff0a75a63953782a609bf023c68cdb71c3dbd74478223db9bbd1b744795"
 dependencies = [
  "anyhow",
  "async-task",
@@ -2248,6 +2245,7 @@ dependencies = [
  "pathfinder_geometry",
  "smallvec",
  "thiserror 2.0.21",
+ "unicode-bidi",
  "zed-font-kit",
 ]
 
@@ -2367,8 +2365,6 @@ dependencies = [
 [[package]]
 name = "gpui-fast-web"
 version = "0.1.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad903fddb78ae4c8f1c24b7fa07c79a0697da7614183d8c7dad67bd296802901"
 dependencies = [
  "anyhow",
  "async-channel",
@@ -2460,6 +2456,7 @@ dependencies = [
  "gpui-component",
  "gpui-fast",
  "gpui-fast-platform",
+ "gpui-fast-web",
  "gpui-kit-assets",
  "gpui-pre",
  "gpui-pre-macros",
@@ -2473,6 +2470,7 @@ version = "0.8.1"
 source = "git+https://github.com/longbridge/gpui-kit?branch=main#bb85882e1faab845d9e7be33b69a152879a90f69"
 dependencies = [
  "anyhow",
+ "gpui-fast",
  "gpui-pre",
  "gpui-pre-reqwest",
  "log",
@@ -2490,7 +2488,6 @@ dependencies = [
  "gpui-kit",
  "gpui-kit-material-color",
  "gpui-material-symbols",
- "gpui-pre",
  "web-time",
 ]
 
@@ -2507,8 +2504,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "gpui-kit",
- "gpui-pre",
- "gpui-pre-platform",
  "resvg 0.46.0",
  "roxmltree 0.21.2",
  "ttf-parser",
@@ -2522,8 +2517,6 @@ dependencies = [
  "gpui-kit",
  "gpui-kit-material",
  "gpui-material-symbols",
- "gpui-pre",
- "gpui-pre-platform",
  "resvg 0.46.0",
  "tiny-skia",
 ]
@@ -2536,8 +2529,6 @@ dependencies = [
  "gpui-kit",
  "gpui-kit-material",
  "gpui-material-symbols",
- "gpui-pre",
- "gpui-pre-platform",
  "js-sys",
  "log",
  "resvg 0.46.0",

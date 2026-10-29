@@ -1,5 +1,7 @@
 //! cargo run --features showcase --example showcase
 //! cargo run --features showcase-capture --example showcase -- --capture showcase.png
+extern crate gpui_kit as gpui;
+
 use gpui_kit::component::{ActiveTheme, button::Button};
 use gpui_kit::{prelude::*, *};
 use gpui_material_symbols::{Axes, MaterialSymbols, Style, Symbol};

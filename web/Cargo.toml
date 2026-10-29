@@ -6,15 +6,16 @@ license = "Apache-2.0"
 description = "The Material Symbols browser example, built for the web"
 publish = false
 
+[features]
+gpui-fast = ["gpui-kit/gpui-fast"]
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-# Keep aligned with the independent browser/ consumer's GPUI snapshot.
+# Engine and platform types both come from the Kit's selected backend.
 [target.'cfg(target_family = "wasm")'.dependencies]
 gpui-kit = { git = "https://github.com/longbridge/gpui-kit", branch = "main" }
 gpui-material-symbols = { path = "..", default-features = false }
-gpui = { package = "gpui-pre", version = "=0.3.10" }
-gpui_platform = { package = "gpui-pre-platform", version = "=0.3.10", default-features = false }
 gpui-base = { version = "=0.8.1" }
 gpui-kit-material = { git = "https://github.com/mizorewww/gpui-kit-material", branch = "main", default-features = false }
 tiny-skia = { version = "0.11", features = ["png-format"] }

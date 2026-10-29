@@ -3,6 +3,9 @@
 //! `cargo run -p gpui-material-symbols-browser --bin material_symbols`
 //!
 //! The `web` crate builds the same browser for the web with `run_web`.
+#[cfg(not(target_family = "wasm"))]
+extern crate gpui_kit as gpui;
+
 mod catalog;
 mod export;
 use catalog::{Entry, Sort};
@@ -994,7 +997,7 @@ fn main() {
         capture(&directory);
         return;
     }
-    run(gpui_platform::application());
+    run(gpui_kit::platform::application());
 }
 
 /// Opens the browser window natively.
@@ -1038,9 +1041,9 @@ fn capture(directory: &str) {
     use std::{path::Path, sync::Arc};
     std::fs::create_dir_all(directory).unwrap();
     let mut app = HeadlessAppContext::with_platform(
-        gpui_platform::current_platform(true).text_system(),
+        gpui_kit::platform::current_platform(true).text_system(),
         Arc::new(Assets::with(SymbolsSource)),
-        gpui_platform::current_headless_renderer,
+        gpui_kit::platform::current_headless_renderer,
     );
     app.update(|cx| {
         gpui_base::init(cx);

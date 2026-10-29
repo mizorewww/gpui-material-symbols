@@ -8,6 +8,7 @@ publish = false
 
 [features]
 default = ["material-browser"]
+gpui-fast = ["gpui-kit/gpui-fast"]
 # The former root feature now belongs to this consumer package. It embeds the
 # catalog assets for offline native use; the separate web consumer loads them.
 material-browser = ["gpui-material-symbols/embed-assets"]
@@ -16,8 +17,6 @@ material-browser = ["gpui-material-symbols/embed-assets"]
 gpui-kit = { git = "https://github.com/longbridge/gpui-kit", branch = "main", features = ["test-support"] }
 gpui-material-symbols = { path = "..", default-features = false }
 gpui-kit-material = { git = "https://github.com/mizorewww/gpui-kit-material", branch = "main" }
-gpui = { package = "gpui-pre", version = "=0.3.10", features = ["test-support"] }
-gpui_platform = { package = "gpui-pre-platform", version = "=0.3.10", features = ["font-kit", "x11", "wayland", "runtime_shaders", "test-support"] }
 gpui-base = { version = "=0.8.1", features = ["test-support"] }
 tiny-skia = { version = "0.11", features = ["png-format"] }
 resvg = { version = "0.46", default-features = false }
