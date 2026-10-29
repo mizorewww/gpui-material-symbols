@@ -7,6 +7,53 @@ Material Symbols：4,359 个图标名称，Outlined / Rounded / Sharp 三种风�
 填充、粗细、等级和光学尺寸。`Symbol` 实现了 Kit 的 `IconNamed`，可以直接放进按钮、菜单等
 任意标准图标槽位。
 
+## 运行示例
+
+```sh
+git clone https://github.com/mizorewww/gpui-material-symbols
+cd gpui-material-symbols
+
+# 全部图标的浏览器（基于 gpui-kit-material）
+cargo run --no-default-features --features material-browser --example material_symbols
+
+# 在 Longbridge GPUI Kit 组件中使用 Material Symbols
+cargo run --features showcase --example showcase
+
+# 命令行导出单个 SVG
+cargo run --no-default-features --example export -- home rounded > home.svg
+```
+
+## 截图
+
+### 图标浏览器（`material_symbols`）
+
+搜索全部 4,359 个图标，切换风格，调节填充、粗细、等级和光学尺寸，导出 SVG/PNG，并复制对应的 Rust 代码。
+主题默认跟随系统的浅色或深色模式，也可以手动切换。
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/material-symbols-dark.png">
+  <img src="docs/screenshots/material-symbols-light.png" alt="图标浏览器：带搜索和排序的标题栏、风格与轴的工具栏，以及 UI 操作图标网格">
+</picture>
+
+详情面板，包含导出和生成的 Rust 代码：
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/material-symbols-detail-dark.png">
+  <img src="docs/screenshots/material-symbols-detail.png" alt="Search 图标的详情面板，包含导出按钮和生成的 Rust 代码">
+</picture>
+
+搜索 “home”：
+
+![搜索 “home” 的结果](docs/screenshots/material-symbols-search.png)
+
+### Kit 集成（`showcase`）
+
+Kit `Button` 中的三种风格、连续变化的填充轴，以及内嵌 SVG 图标。
+
+![Showcase 示例：三种风格的 Kit 按钮、填充逐渐增加的一排心形图标，以及使用内嵌 SVG 图标的按钮](docs/screenshots/showcase.png)
+
+## 特性
+
 - **完整**：Google 可变字体名称与仅有 SVG 的名称的并集，固定到确切的上游提交并记录校验值。
 - **离线**：官方字体和 SVG 全部内嵌，构建和运行时不联网、不注册系统字体。
 - **严格校验**：越界的轴值和不支持的变体会返回错误，绝不悄悄换成近似图标。
@@ -17,25 +64,6 @@ Material Symbols：4,359 个图标名称，Outlined / Rounded / Sharp 三种风�
 | wght 粗细 | `100..=700` |
 | GRAD 等级 | `-50..=200` |
 | opsz 光学尺寸 | `20..=48` |
-
-## 示例截图
-
-`showcase` 示例：Kit `Button` 中的三种风格，以及连续变化的填充轴。
-
-<img src="docs/screenshots/showcase.png" alt="Showcase 示例：三种风格的 Kit 按钮、填充逐渐增加的一排心形图标，以及使用内嵌 SVG 图标的按钮" width="420">
-
-`material_symbols` 示例：基于 [gpui-kit-material](https://github.com/mizorewww/gpui-kit-material)
-的原生 GPUI 图标浏览器，可搜索全部图标、切换风格并调节四个轴、导出 SVG/PNG，以及复制对应的 Rust 代码。
-主题跟随系统的浅色或深色模式。
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/material-symbols-dark.png">
-  <img src="docs/screenshots/material-symbols-light.png" alt="图标浏览器：带搜索和排序的标题栏、风格与轴的工具栏，以及 UI 操作图标网格">
-</picture>
-
-| 图标详情 | 搜索 |
-| --- | --- |
-| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/material-symbols-detail-dark.png"><img src="docs/screenshots/material-symbols-detail.png" alt="Search 图标的详情面板，包含导出按钮和生成的 Rust 代码"></picture> | ![搜索 “home” 的结果](docs/screenshots/material-symbols-search.png) |
 
 ## 安装
 
@@ -144,19 +172,6 @@ use gpui_material_symbols::{Style, Symbol};
 
 let svg = Symbol::HOME.icon().style(Style::Rounded).to_svg().unwrap();
 assert!(svg.starts_with("<svg"));
-```
-
-## 运行示例
-
-```sh
-# Kit 集成示例
-cargo run --features showcase --example showcase
-
-# 图标浏览器（使用 gpui-kit-material 组件）
-cargo run --no-default-features --features material-browser --example material_symbols
-
-# 命令行导出 SVG
-cargo run --no-default-features --example export -- home rounded > home.svg
 ```
 
 ## 帮助与贡献

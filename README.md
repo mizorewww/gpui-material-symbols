@@ -9,6 +9,55 @@ adjustable fill, weight, grade and optical size. `Symbol` implements Kit's
 `IconNamed`, so icons drop straight into buttons, menus and every other
 standard icon slot.
 
+## Run the examples
+
+```sh
+git clone https://github.com/mizorewww/gpui-material-symbols
+cd gpui-material-symbols
+
+# Icon browser for the whole catalog (built with gpui-kit-material)
+cargo run --no-default-features --features material-browser --example material_symbols
+
+# Material Symbols in Longbridge GPUI Kit components
+cargo run --features showcase --example showcase
+
+# Export one SVG from the command line
+cargo run --no-default-features --example export -- home rounded > home.svg
+```
+
+## Screenshots
+
+### Icon browser (`material_symbols`)
+
+Search all 4,359 icons, switch style, adjust fill, weight, grade and optical
+size, export SVG or PNG, and copy the matching Rust code. The theme follows the
+system's light or dark appearance until you pick one.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/material-symbols-dark.png">
+  <img src="docs/screenshots/material-symbols-light.png" alt="Icon browser: app bar with search and sort, a toolbar for style and axes, and a grid of UI action icons">
+</picture>
+
+The details panel, with export and the generated Rust code:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/material-symbols-detail-dark.png">
+  <img src="docs/screenshots/material-symbols-detail.png" alt="Details panel for the Search icon with export buttons and generated Rust code">
+</picture>
+
+Searching for "home":
+
+![Search results for "home"](docs/screenshots/material-symbols-search.png)
+
+### Kit integration (`showcase`)
+
+All three styles in Kit `Button`s, the continuous fill axis, and an embedded
+SVG icon.
+
+![Showcase example: Kit buttons in three styles, a row of hearts with increasing fill, and a button with an embedded SVG icon](docs/screenshots/showcase.png)
+
+## Features
+
 - **Complete:** the full union of Google's variable-font names and SVG-only
   names, pinned to an exact upstream commit with recorded checksums.
 - **Offline:** the official fonts and SVGs are embedded. Builds and apps never
@@ -22,27 +71,6 @@ standard icon slot.
 | wght (weight) | `100..=700` |
 | GRAD (grade) | `-50..=200` |
 | opsz (optical size) | `20..=48` |
-
-## Gallery
-
-The `showcase` example: all three styles in Kit `Button`s, and the continuous
-fill axis.
-
-<img src="docs/screenshots/showcase.png" alt="Showcase example: Kit buttons in three styles, a row of hearts with increasing fill, and a button with an embedded SVG icon" width="420">
-
-The `material_symbols` example: a native GPUI icon browser built with
-[gpui-kit-material](https://github.com/mizorewww/gpui-kit-material). Search
-the whole catalog, adjust the style and all four axes, export SVG or PNG, and
-copy the matching Rust code. It follows the system's light or dark theme.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/material-symbols-dark.png">
-  <img src="docs/screenshots/material-symbols-light.png" alt="Icon browser: app bar with search and sort, a toolbar for style and axes, and a grid of UI action icons">
-</picture>
-
-| Icon details | Search |
-| --- | --- |
-| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/material-symbols-detail-dark.png"><img src="docs/screenshots/material-symbols-detail.png" alt="Details panel for the Search icon with export buttons and generated Rust code"></picture> | ![Search results for "home"](docs/screenshots/material-symbols-search.png) |
 
 ## Installation
 
@@ -157,19 +185,6 @@ use gpui_material_symbols::{Style, Symbol};
 
 let svg = Symbol::HOME.icon().style(Style::Rounded).to_svg().unwrap();
 assert!(svg.starts_with("<svg"));
-```
-
-## Running the examples
-
-```sh
-# Kit integration
-cargo run --features showcase --example showcase
-
-# Icon browser (built with gpui-kit-material components)
-cargo run --no-default-features --features material-browser --example material_symbols
-
-# Export one SVG from the command line
-cargo run --no-default-features --example export -- home rounded > home.svg
 ```
 
 ## Help and contributing
