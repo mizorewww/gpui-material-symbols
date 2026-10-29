@@ -1,19 +1,20 @@
 //! cargo run --features showcase --example showcase
-use gpui::{prelude::*, *};
+use gpui_kit::component::{ActiveTheme, button::Button};
+use gpui_kit::{prelude::*, *};
 use gpui_material_symbols::{Axes, MaterialSymbols, Style, Symbol};
-use gpuikit::elements::icon_button::icon_button;
 
 struct Showcase;
 impl Render for Showcase {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
             .flex()
             .flex_col()
             .gap_6()
             .p_8()
-            .bg(rgb(0x17191f))
-            .text_color(rgb(0xeeeeee))
-            .child("Material Symbols · GPUI + gpuikit")
+            .size_full()
+            .bg(cx.theme().background)
+            .text_color(cx.theme().foreground)
+            .child("Material Symbols · Longbridge GPUI Kit")
             .children(Style::ALL.map(|style| {
                 div().flex().flex_col().gap_3().child(style.name()).child(
                     div().flex().gap_3().children(
@@ -27,7 +28,7 @@ impl Render for Showcase {
                         .into_iter()
                         .enumerate()
                         .map(move |(index, symbol)| {
-                            icon_button((style.name(), index), symbol.icon().style(style).svg())
+                            Button::new((style.name(), index)).icon(symbol.icon().style(style))
                         }),
                     ),
                 )
@@ -38,25 +39,31 @@ impl Render for Showcase {
                     .icon()
                     .style(Style::Rounded)
                     .axes(Axes::new(step as f32 / 4., 400., 0., 24.).unwrap())
-                    .svg()
+                    .component()
                     .size(px(36.))
             })))
+            .child(
+                Button::new("embedded")
+                    .label("Embedded SVG")
+                    .icon(Symbol::HOME.icon().embedded().unwrap()),
+            )
     }
 }
 fn main() {
-    Application::with_platform(gpui_platform::current_platform(false))
-        .with_assets(MaterialSymbols.with_fallback(gpuikit::assets()))
+    gpui_kit::application()
+        .with_assets(MaterialSymbols.with_fallback(gpui_kit::assets::Assets))
         .run(|cx| {
-            gpuikit::init(cx);
-            cx.open_window(
+            gpui_kit::init(cx);
+            gpui_kit::open_window(
                 WindowOptions {
                     window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
                         None,
-                        size(px(620.), px(520.)),
+                        size(px(620.), px(560.)),
                         cx,
                     ))),
                     ..Default::default()
                 },
+                cx,
                 |_, cx| cx.new(|_| Showcase),
             )
             .expect("open showcase window");

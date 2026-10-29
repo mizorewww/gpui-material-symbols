@@ -1,9 +1,21 @@
 use crate::{Icon, Style, Symbol};
-use gpui::{AssetSource, SharedString, Svg, svg};
+use gpui_kit::{AssetSource, SharedString, Svg, svg};
 use std::borrow::Cow;
 
 impl Icon {
-    /// Return a GPUI SVG accepted directly by gpuikit buttons, alerts and menus.
+    /// A themed Longbridge component icon, respecting Kit sizing and icon resolution.
+    /// Register [`MaterialSymbols`] before rendering path-based icons.
+    pub fn component(self) -> gpui_kit::component::Icon {
+        gpui_kit::component::Icon::new(self)
+    }
+
+    /// A component icon with embedded SVG data; no asset source registration needed.
+    /// Invalid discrete variants fail immediately. Raw data bypasses Kit's path resolver.
+    pub fn embedded(self) -> Result<gpui_kit::component::Icon, crate::Error> {
+        Ok(gpui_kit::component::Icon::default().data(self.to_svg()?.as_bytes()))
+    }
+
+    /// Return the raw SVG primitive from the same backend as GPUI Kit.
     /// Register [`MaterialSymbols`] on the application before rendering.
     pub fn svg(self) -> Svg {
         svg().path(self.asset_path())
@@ -16,7 +28,7 @@ impl Icon {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct MaterialSymbols;
 impl MaterialSymbols {
-    /// Compose with an existing source, including gpuikit's `ResourceSource`.
+    /// Compose with an existing source, including `gpui_kit::assets::Assets`.
     pub fn with_fallback<A: AssetSource>(self, fallback: A) -> WithMaterialSymbols<A> {
         WithMaterialSymbols { fallback }
     }
@@ -58,5 +70,17 @@ impl<A: AssetSource> AssetSource for WithMaterialSymbols<A> {
         paths.sort();
         paths.dedup();
         Ok(paths)
+    }
+}
+
+// Kit's blanket conversions route IconNamed into Icon and all standard icon slots.
+impl gpui_kit::component::IconNamed for Icon {
+    fn path(self) -> SharedString {
+        self.asset_path().into()
+    }
+}
+impl gpui_kit::component::IconNamed for Symbol {
+    fn path(self) -> SharedString {
+        self.icon().asset_path().into()
     }
 }

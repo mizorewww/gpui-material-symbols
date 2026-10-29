@@ -1,15 +1,18 @@
 //! Complete Google Material Symbols, rendered from the official variable fonts.
 //!
 //! [`Symbol`] provides generated constants and name lookup; [`Icon`] chooses a
-//! style and continuous variation axes. With the default `gpui` feature,
-//! [`MaterialSymbols`] serves SVGs to GPUI and [`Icon::svg`] works with gpuikit.
+//! style and continuous variation axes. With the default `gpui-kit` feature,
+//! [`MaterialSymbols`] serves SVGs to GPUI and [`Icon::component`] integrates with Longbridge GPUI Kit.
 
 use std::{fmt, fmt::Write, str::FromStr};
 use ttf_parser::{Face, OutlineBuilder, Tag};
 
-#[cfg(feature = "gpui")]
+#[cfg(feature = "gpui-kit")]
 mod integration;
-#[cfg(feature = "gpui")]
+/// The exact Longbridge GPUI Kit facade used by this integration.
+#[cfg(feature = "gpui-kit")]
+pub use gpui_kit as kit;
+#[cfg(feature = "gpui-kit")]
 pub use integration::{MaterialSymbols, WithMaterialSymbols};
 
 /// A validated symbol from Google's complete, pinned catalog, including aliases.

@@ -1,5 +1,5 @@
-#![cfg(feature = "gpui")]
-use gpui::{AssetSource, SharedString};
+#![cfg(feature = "gpui-kit")]
+use gpui_kit::{AssetSource, SharedString};
 use gpui_material_symbols::{MaterialSymbols, Symbol};
 use std::borrow::Cow;
 
@@ -40,5 +40,30 @@ fn composes_with_existing_assets_and_preserves_errors() {
             .len(),
         1
     );
-    let _: gpui::Svg = Symbol::HOME.icon().svg();
+    let _: gpui_kit::Svg = Symbol::HOME.icon().svg();
+}
+
+#[test]
+fn longbridge_component_slots_accept_symbols_and_configured_icons() {
+    use gpui_kit::component::{Icon as KitIcon, IconNamed, button::Button, menu::PopupMenuItem};
+    use gpui_material_symbols::Style;
+    let configured = Symbol::FAVORITE.icon().style(Style::Rounded).filled(true);
+    assert_eq!(
+        IconNamed::path(configured).as_ref(),
+        configured.asset_path()
+    );
+    assert_eq!(
+        IconNamed::path(Symbol::HOME).as_ref(),
+        Symbol::HOME.icon().asset_path()
+    );
+    let _: KitIcon = Symbol::HOME.into();
+    let _: KitIcon = configured.into();
+    let _ = Button::new("home").icon(Symbol::HOME);
+    let _ = Button::new("favorite").icon(configured);
+    let _ = PopupMenuItem::new("Favorite").icon(configured);
+    let _ = configured.component();
+    let _ = configured.embedded().unwrap();
+    let source = MaterialSymbols.with_fallback(gpui_kit::assets::Assets);
+    assert!(source.load("icons/check.svg").unwrap().is_some());
+    assert!(source.load(&configured.asset_path()).unwrap().is_some());
 }
