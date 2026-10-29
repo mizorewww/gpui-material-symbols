@@ -5,20 +5,20 @@ owned by `gpui-material-symbols`, using its complete catalog and reusable
 components from the sibling `gpui-kit-material` repository.
 The reference desktop viewport is 1440 × 1000 logical pixels. No WebView is used.
 
-Clone `gpui-kit-material` and `gpui-material-symbols` next to each other, then:
+Cargo fetches `gpui-kit-material` from Git (its `main` branch, pinned by
+`Cargo.lock`), so no sibling checkout is required:
 
 ```sh
-cd gpui-material-symbols
 cargo run --no-default-features --features material-browser --example material_symbols
 ```
 
-The example uses this crate without its optional `gpui-component` adapter;
+The example uses this crate without its optional `gpui-kit` adapter;
 its `AssetSource` renders symbols directly into the Material kit's GPUI version. The
 symbol crate's own optional adapter follows `longbridge/gpui-kit` main.
 
 ![Native GPUI light theme](screenshots/material-symbols-light.png)
 
-[Dark theme](screenshots/material-symbols-dark.png) · [GPUI details](screenshots/material-symbols-detail.png)
+[Dark theme](screenshots/material-symbols-dark.png) · [Details sheet](screenshots/material-symbols-detail.png) · [Search](screenshots/material-symbols-search.png)
 
 ## Interactions
 
@@ -38,8 +38,11 @@ The metadata is a snapshot, so live popularity/new releases can change upstream.
 
 ## Components
 
-Reusable implementations live in `../gpui-kit-material/crates/material/src/components/controls.rs`,
-and each appears in that kit’s `examples/gallery.rs`. Geometry was checked against [md3.io](https://md3.io/components):
+The switch, slider, search field, buttons and side sheet come from
+`gpui-kit-material` (`crates/material/src/components/controls.rs`) and appear in
+that kit's `examples/gallery.rs`. The navigation rail, sort menu, filter chips,
+cards and snackbar are still drawn inline in this example and should move to
+the kit. Geometry was checked against [md3.io](https://md3.io/components):
 52 × 32 switch with 16/24 thumb, 56-high search field, pill buttons, and a standard
 side sheet. `MaterialSlider` offers the classic Google Fonts appearance and
 an expressive 16-high track with a 4 × 44 handle. Behavior and accessibility
@@ -54,16 +57,15 @@ value bubbles are not provided by this component. The browser uses Classic.
 ```sh
 cargo fmt --all --check
 cargo clippy --no-default-features --features material-browser --all-targets -- -D warnings
-cargo test --workspace
 cargo test --no-default-features --features material-browser --example material_symbols
 cargo run --no-default-features --features material-browser --example material_symbols -- --capture /tmp/material-symbols
 ```
 
 The capture command renders light, dark, details and search states through the
 native GPUI headless renderer. On macOS this requires a working Metal device.
-Interaction tests exercise actual input/click dispatch, including disabled
-controls, sort selection, opening/closing details, empty results and clearing
-search. Export tests decode the PNG and check dimensions and pixel colors.
+Interaction tests exercise actual input/click dispatch: sort selection,
+opening/closing details, empty results, clearing search and keeping the scroll
+position when the grid reflows. Export tests decode the PNG and check dimensions and pixel colors.
 
 ## Assets and provenance
 
@@ -76,8 +78,9 @@ search. Export tests decode the PNG and check dimensions and pixel colors.
 - Google Sans Flex: [google/fonts](https://github.com/google/fonts/tree/main/ofl/googlesansflex),
   distributed with `assets/OFL.txt` under SIL Open Font License 1.1.
 - Google Fonts logo: SVG from the reference site's header, retained solely to
-  reproduce the requested reference example. Google branding is not the kit's
-  identity and is not covered by this project's MIT license.
+  reproduce the requested reference example. Google branding is not this
+  project's identity and is not covered by its Apache-2.0 license. This
+  example is not affiliated with or endorsed by Google.
 
 This repository remains Apache 2.0; the reusable Material kit remains MIT.
 Third-party assets retain their own terms.
