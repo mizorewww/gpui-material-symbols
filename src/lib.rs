@@ -16,10 +16,13 @@ pub use gpui_kit as kit;
 #[cfg(feature = "gpui-kit")]
 pub use integration::{MaterialSymbols, WithMaterialSymbols};
 
-/// Compile and run the README's examples as doctests.
+/// Compile and run the READMEs' examples as doctests.
 #[cfg(all(doctest, feature = "gpui-kit"))]
 #[doc = include_str!("../README.md")]
 struct ReadmeDoctests;
+#[cfg(all(doctest, feature = "gpui-kit"))]
+#[doc = include_str!("../README.zh-CN.md")]
+struct ReadmeZhCnDoctests;
 
 /// A validated symbol from Google's complete, pinned catalog, including aliases.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

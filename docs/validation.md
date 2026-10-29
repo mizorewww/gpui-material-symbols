@@ -19,7 +19,7 @@ Pinned by `Cargo.lock`:
 | `cargo fmt --all -- --check`, `git diff --check` | Passed |
 | `cargo test --locked --no-default-features` | 8 passed: 7 catalog, 1 raster comparison |
 | `cargo test --locked --test integration` | 2 passed |
-| `cargo test --locked --doc` | 6 README examples passed |
+| `cargo test --locked --doc` | 12 README examples passed (6 in `README.md`, 6 in `README.zh-CN.md`) |
 | `cargo check --locked --features showcase --example showcase` | Passed |
 | `cargo test --locked --no-default-features --features material-browser --example material_symbols` | 7 passed: 3 catalog, 2 export, 2 interaction |
 | `cargo clippy --locked --all-targets --all-features -- -D warnings` | Passed |
