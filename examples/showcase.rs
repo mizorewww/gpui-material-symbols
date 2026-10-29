@@ -1,4 +1,5 @@
 //! cargo run --features showcase --example showcase
+//! cargo run --features showcase-capture --example showcase -- --capture showcase.png
 use gpui_kit::component::{ActiveTheme, button::Button};
 use gpui_kit::{prelude::*, *};
 use gpui_material_symbols::{Axes, MaterialSymbols, Style, Symbol};
@@ -50,6 +51,15 @@ impl Render for Showcase {
     }
 }
 fn main() {
+    #[cfg(feature = "showcase-capture")]
+    if let Some(path) = std::env::args()
+        .nth(1)
+        .filter(|s| s == "--capture")
+        .and_then(|_| std::env::args().nth(2))
+    {
+        capture(&path);
+        return;
+    }
     gpui_kit::application()
         .with_assets(MaterialSymbols.with_fallback(gpui_kit::assets::Assets))
         .run(|cx| {
@@ -69,4 +79,35 @@ fn main() {
             .expect("open showcase window");
             cx.activate(true);
         });
+}
+
+/// Render through the native headless renderer (Metal on macOS) into a PNG.
+#[cfg(feature = "showcase-capture")]
+fn capture(path: &str) {
+    let mut app = HeadlessAppContext::with_platform(
+        platform::current_platform(true).text_system(),
+        std::sync::Arc::new(MaterialSymbols.with_fallback(gpui_kit::assets::Assets)),
+        platform::current_headless_renderer,
+    );
+    app.update(gpui_kit::init);
+    let window = app
+        .open_window(size(px(620.), px(560.)), |window, cx| {
+            let view = cx.new(|_| Showcase);
+            cx.new(|cx| base::Root::new(view, window, cx))
+        })
+        .expect("open headless showcase window");
+    // The first frame requests SVG assets; later frames paint them.
+    for _ in 0..2 {
+        app.update_window(window.into(), |_, window, cx| {
+            window.refresh();
+            window.draw(cx).clear(cx);
+        })
+        .unwrap();
+        app.run_until_parked();
+    }
+    app.capture_screenshot(window.into())
+        .expect("capture showcase")
+        .save(path)
+        .expect("write showcase PNG");
+    println!("Captured showcase to {path}");
 }

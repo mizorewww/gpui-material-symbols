@@ -14,6 +14,8 @@ exclude = [".research/", "docs/", "scripts/", ".github/"]
 default = ["gpui-kit"]
 gpui-kit = ["dep:gpui-kit", "dep:anyhow"]
 showcase = ["gpui-kit"]
+# Headless `showcase --capture`: enables test-support on Kit's own gpui-pre backend.
+showcase-capture = ["showcase", "dep:gpui", "dep:gpui_platform"]
 material-browser = ["dep:gpui", "dep:gpui_platform", "dep:gpui-base", "dep:gpui-kit-material", "dep:image", "dep:tiny-skia"]
 
 [dependencies]
