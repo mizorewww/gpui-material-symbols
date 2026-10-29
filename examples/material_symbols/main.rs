@@ -28,6 +28,10 @@ const GRADES: [f32; 3] = [-25., 0., 200.];
 const OPTICAL_SIZES: [f32; 4] = [20., 24., 40., 48.];
 const DEFAULT_COLOR: &str = "#1F1F1F";
 const SHEET: f32 = 360.;
+/// Below this window width the browser uses its compact phone layout: the
+/// controls fold behind a button, and details cover the grid.
+const COMPACT: f32 = 720.;
+const COMPACT_INSET: f32 = 12.;
 /// Linked from the web build's app bar.
 const REPOSITORY: &str = "https://github.com/mizorewww/gpui-material-symbols";
 /// The GitHub mark (Primer Octicons, MIT) for that link.
@@ -122,6 +126,8 @@ struct Browser {
     sort: Sort,
     selected: Option<usize>,
     detail_open: bool,
+    /// The compact layout's style and axis controls are shown.
+    controls_open: bool,
     preview_size: f32,
     status: SharedString,
     _subscriptions: Vec<Subscription>,
@@ -180,6 +186,7 @@ impl Browser {
             sort: Sort::Popular,
             selected: None,
             detail_open: false,
+            controls_open: false,
             preview_size: 48.,
             status: "".into(),
             _subscriptions: subscriptions,
@@ -275,23 +282,25 @@ impl Browser {
 
     /// The app bar is the window's title bar, drawn by the kit's `TitleBar`
     /// on the same surface as the content.
-    fn app_bar(&self, cx: &mut Context<Self>) -> impl IntoElement {
+    fn app_bar(&self, compact: bool, cx: &mut Context<Self>) -> impl IntoElement {
         TitleBar::new("app-bar", APP_BAR)
-            .gap(rem(16.))
-            .child(glyph(Symbol::INTERESTS, 24.))
-            .child(
-                div()
-                    .flex()
-                    .flex_col()
-                    .flex_shrink_0()
-                    .child(div().text_size(rem(16.)).child("Material Symbols"))
-                    .child(
-                        div()
-                            .text_size(rem(12.))
-                            .text_color(color(ColorRole::GRAY))
-                            .child(format!("{} of {} icons", self.shown, self.entries.len())),
-                    ),
-            )
+            .gap(rem(if compact { 4. } else { 16. }))
+            .when(!compact, |bar| bar.child(glyph(Symbol::INTERESTS, 24.)))
+            .when(!compact, |bar| {
+                bar.child(
+                    div()
+                        .flex()
+                        .flex_col()
+                        .flex_shrink_0()
+                        .child(div().text_size(rem(16.)).child("Material Symbols"))
+                        .child(
+                            div()
+                                .text_size(rem(12.))
+                                .text_color(color(ColorRole::GRAY))
+                                .child(format!("{} of {} icons", self.shown, self.entries.len())),
+                        ),
+                )
+            })
             .child(
                 title_bar_control(
                     div()
@@ -315,25 +324,21 @@ impl Browser {
                         ),
                 ),
             )
-            .child(title_bar_control(
-                div().child(
-                    ConnectedButtonGroup::new("sort", "Sort")
-                        .options([("popular", "Popular"), ("name", "A–Z")])
-                        .selected(match self.sort {
-                            Sort::Popular => "popular",
-                            Sort::Name => "name",
+            .when(!compact, |bar| {
+                bar.child(title_bar_control(div().child(self.sort_group(cx))))
+            })
+            .when(compact, |bar| {
+                bar.child(title_bar_control(
+                    icon_button("controls", Symbol::TUNE, "Style and axes")
+                        .when(self.controls_open, |b| {
+                            b.bg(color(ColorRole::SECONDARY_CONTAINER))
                         })
-                        .on_change(cx.listener(|this, value: &SharedString, _, cx| {
-                            this.sort = if value == "name" {
-                                Sort::Name
-                            } else {
-                                Sort::Popular
-                            };
-                            this.rebuild(cx);
+                        .on_click(cx.listener(|this, _, _, cx| {
+                            this.controls_open = !this.controls_open;
                             cx.notify();
                         })),
-                ),
-            ))
+                ))
+            })
             .child(title_bar_control(
                 icon_button(
                     "theme",
@@ -365,14 +370,34 @@ impl Browser {
                                 .text_color(color(ColorRole::ON_SECONDARY_CONTAINER))
                                 .flex_shrink_0(),
                         )
-                        .child("GitHub")
+                        .when(!compact, |b| b.child("GitHub"))
+                        .when(compact, |b| b.w(rem(40.)).px_0())
                         .on_click(|_, _, cx| cx.open_url(REPOSITORY)),
                 ))
             })
     }
 
-    /// Style, fill, the three numeric axes and reset.
-    fn toolbar(&self, cx: &mut Context<Self>) -> impl IntoElement {
+    fn sort_group(&self, cx: &mut Context<Self>) -> ConnectedButtonGroup {
+        ConnectedButtonGroup::new("sort", "Sort")
+            .options([("popular", "Popular"), ("name", "A–Z")])
+            .selected(match self.sort {
+                Sort::Popular => "popular",
+                Sort::Name => "name",
+            })
+            .on_change(cx.listener(|this, value: &SharedString, _, cx| {
+                this.sort = if value == "name" {
+                    Sort::Name
+                } else {
+                    Sort::Popular
+                };
+                this.rebuild(cx);
+                cx.notify();
+            }))
+    }
+
+    /// Style, fill, the three numeric axes and reset; in the compact layout
+    /// also the sort order.
+    fn toolbar(&self, compact: bool, cx: &mut Context<Self>) -> impl IntoElement {
         let axis = |state: &Entity<SliderState>, label: &'static str, width: f32| {
             div()
                 .w(rem(width))
@@ -386,9 +411,9 @@ impl Browser {
             .flex_wrap()
             .flex_shrink_0()
             .items_center()
-            .gap_x(rem(24.))
+            .gap_x(rem(if compact { 16. } else { 24. }))
             .gap_y(rem(12.))
-            .px(px(GRID_INSET))
+            .px(px(inset(compact)))
             .py(rem(12.))
             .border_b_1()
             .border_color(color(ColorRole::HAIRLINE))
@@ -405,6 +430,7 @@ impl Browser {
                         }
                     })),
             )
+            .when(compact, |bar| bar.child(self.sort_group(cx)))
             .child(labelled(
                 "Fill",
                 String::new(),
@@ -724,6 +750,11 @@ impl Browser {
     }
 }
 
+/// Space between the window edge and the grid or toolbar.
+fn inset(compact: bool) -> f32 {
+    if compact { COMPACT_INSET } else { GRID_INSET }
+}
+
 fn title_case(name: &str) -> String {
     let mut chars = name.chars();
     chars
@@ -740,14 +771,18 @@ impl Render for Browser {
         let palette = self.palette(cx);
         theme::apply_palette(palette, window, cx);
         theme::apply_scale(1., window);
-        // The details sheet sits beside the grid, so tiles never hide under it.
-        let sheet = if self.detail_open {
-            f32::from(rem(SHEET).to_pixels(window.rem_size()))
+        let window_width = f32::from(window.viewport_size().width);
+        let compact = window_width < COMPACT;
+        let sheet_width = f32::from(rem(SHEET).to_pixels(window.rem_size()));
+        // The details sheet sits beside the grid, so tiles never hide under
+        // it; in the compact layout it covers the whole width instead.
+        let sheet = if self.detail_open && !compact {
+            sheet_width
         } else {
             0.
         };
-        let width = f32::from(window.viewport_size().width) - sheet;
-        let columns = ((width - 2. * GRID_INSET + TILE_GAP) / (TILE + TILE_GAP))
+        let width = window_width - sheet;
+        let columns = ((width - 2. * inset(compact) + TILE_GAP) / (TILE + TILE_GAP))
             .floor()
             .max(1.) as usize;
         if columns != self.columns {
@@ -768,8 +803,10 @@ impl Render for Browser {
             .text_size(rem(14.))
             .bg(color(ColorRole::CANVAS))
             .text_color(color(ColorRole::INK))
-            .child(self.app_bar(cx))
-            .child(self.toolbar(cx))
+            .child(self.app_bar(compact, cx))
+            .when(!compact || self.controls_open, |root| {
+                root.child(self.toolbar(compact, cx))
+            })
             .child(
                 div()
                     .relative()
@@ -779,15 +816,20 @@ impl Render for Browser {
                     .child(
                         div()
                             .size_full()
-                            .pl(px(GRID_INSET))
-                            .pr(px(GRID_INSET + sheet))
+                            .pl(px(inset(compact)))
+                            .pr(px(inset(compact) + sheet))
                             .pb(rem(16.))
                             .child(grid),
                     )
                     .child(
                         MaterialSideSheet::new("details-sheet")
                             .open(self.detail_open)
-                            .width(rem(SHEET))
+                            // The kit's `rem` takes 14px-based design units.
+                            .width(rem(if compact {
+                                SHEET * window_width / sheet_width
+                            } else {
+                                SHEET
+                            }))
                             .child(self.detail(cx)),
                     )
                     .when(!self.status.is_empty(), |body| {
@@ -795,7 +837,8 @@ impl Render for Browser {
                             div()
                                 .absolute()
                                 .bottom(rem(24.))
-                                .left(px(GRID_INSET))
+                                .left(px(inset(compact)))
+                                .right(px(inset(compact)))
                                 .child(Snackbar::new("status", self.status.clone()).close(
                                     "Dismiss",
                                     cx.listener(|this, _, _, cx| {
