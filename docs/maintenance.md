@@ -28,8 +28,10 @@ cargo update -p gpui-kit
 
 Inspect current Kit main APIs (`IconNamed`, `component::Icon`, `assets`,
 `application`, `init`, `open_window`), then run the validation commands and
-rebuild the showcase. Keep the `gpui-pre` versions used by the
-`material-browser` feature aligned with Kit and `gpui-kit-material`.
+rebuild the showcase. The `material-browser` and `showcase-capture` features
+pin `gpui-pre`/`gpui-pre-platform` exactly; keep that pin equal to the version
+Kit and `gpui-kit-material` use, or those features stop resolving or pull in a
+second backend.
 
 ## Updating Google assets
 
@@ -50,7 +52,9 @@ cargo test --no-default-features
 ```
 
 The extractor reads Git objects directly, so the millions of SVG files are
-never checked out. `--verify` fails until both scripts have run for the same
+never checked out. With the blob-less fetch above, `git cat-file` downloads
+the roughly 18,000 needed SVG blobs on demand, one request at a time; expect
+this step to take a while. `--verify` fails until both scripts have run for the same
 revision. Review `assets/manifest.json`, the coverage counts and the snapshot
 counts in `tests/catalog.rs` before committing. Cargo builds never run these
 scripts or touch the network for assets.
