@@ -1,0 +1,23 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: python3 scripts/sync_assets.py --verify
+      - run: cargo fmt --all -- --check
+      - run: cargo test --locked --no-default-features
+  gpuikit:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - run: cargo test --locked --test integration
+      - run: cargo check --locked --features showcase --example showcase
+      - run: cargo clippy --locked --all-targets --all-features -- -D warnings
