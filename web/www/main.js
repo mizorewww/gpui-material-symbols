@@ -127,6 +127,15 @@ const progress = (bytes) => {
   if (text) text.textContent = `Loading Material Symbols… ${percent}%`;
 };
 
+// GPUI Web sizes its canvas from devicePixelContentBoxSize where the browser
+// has it. Chrome's DevTools device emulation reports CSS pixels there at a
+// devicePixelRatio of 3, so the app rendered three times too large; real
+// browsers report device pixels. Without it, GPUI uses its Safari path, CSS
+// size × devicePixelRatio, which matches on real browsers too.
+try {
+  delete ResizeObserverEntry.prototype.devicePixelContentBoxSize;
+} catch {}
+
 let started = false;
 try {
   const retrying = () => text && (text.textContent = "Connection problem, resuming…");
