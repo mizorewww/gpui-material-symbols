@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Material Symbols</title>
+    <meta name="description" content="Browse all 4,359 Google Material Symbols in GPUI, running in your browser through WebAssembly. Search, adjust the variable axes, export SVG or PNG, and copy the Rust code.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Material Symbols for GPUI">
+    <meta property="og:description" content="The gpui-material-symbols icon browser, compiled to WebAssembly.">
+    <meta property="og:url" content="https://m3symbols.mizore.blog/">
+    <link rel="canonical" href="https://m3symbols.mizore.blog/">
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <style>
+      /* The browser's own canvas and ink colors, so the loading screen does
+         not flash a different color before the first frame. */
+      :root { color-scheme: light dark; --bg: #edf1f7; --fg: #1b1c20; }
+      @media (prefers-color-scheme: dark) {
+        :root { --bg: #1a1e26; --fg: #e3e3e8; }
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; overflow: hidden; }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      body > canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; }
+      #loading {
+        position: fixed;
+        z-index: 1;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: min(360px, calc(100% - 32px));
+        text-align: center;
+        pointer-events: none;
+      }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 16px;
+        border: 4px solid color-mix(in srgb, var(--fg) 12%, transparent);
+        border-left-color: var(--fg);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+      .hint { margin-top: 4px; opacity: .7; font-size: 13px; }
+      .error { pointer-events: auto; }
+      .error a { color: inherit; }
+    </style>
+  </head>
+  <body>
+    <div id="loading" role="status">
+      <div class="spinner"></div>
+      <p>Loading Material Symbols…</p>
+      <p class="hint">The full icon catalog is a one-time ~17 MB download.</p>
+    </div>
+    <noscript>This icon browser needs JavaScript and WebAssembly.</noscript>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

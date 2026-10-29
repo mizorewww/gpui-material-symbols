@@ -1,3 +1,6 @@
+[workspace]
+members = ["web"]
+
 [package]
 name = "gpui-material-symbols"
 version = "0.1.0"

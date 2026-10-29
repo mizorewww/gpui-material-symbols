@@ -1,0 +1,8 @@
+{
+  "IBMPlexSans-Regular.ttf": {
+    "source": "https://github.com/longbridge/gpui-kit/blob/11345ec002d9f182a266b5d5dd3a217090700a87/crates/story-web/fonts/IBMPlexSans-Regular.source.ttf",
+    "sha256": "975dcda37d80f038dcd143c22e33ca2d97a0cc5a929aace1c749153b0fe1afa5",
+    "license": "OFL.txt",
+    "purpose": "Default font required by GPUI Web before initial input measurement"
+  }
+}

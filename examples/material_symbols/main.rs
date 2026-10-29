@@ -1,6 +1,8 @@
 //! A native Material Symbols browser built with gpui-kit-material components.
 //!
 //! `cargo run --no-default-features --features material-browser --example material_symbols`
+//!
+//! The `web` crate builds the same browser for the web with [`run`].
 // GPUI macros prefer an installed Kit facade even when its optional feature is
 // disabled. Keep their generated path on the same backend for this example.
 #[cfg(not(feature = "gpui-kit"))]
@@ -15,7 +17,7 @@ use gpui_base::{
 };
 use gpui_kit_material::{icons::Assets, prelude::*, theme};
 use gpui_material_symbols::{Icon as SymbolIcon, Style, Symbol};
-use std::{borrow::Cow, path::Path};
+use std::borrow::Cow;
 
 /// The app bar doubles as the window title bar.
 const APP_BAR: Pixels = px(64.);
@@ -652,10 +654,21 @@ impl Browser {
             return;
         };
         let extension = if png { "png" } else { "svg" };
-        let receiver = cx.prompt_for_new_path(
-            Path::new("."),
-            Some(&format!("{}.{extension}", icon.symbol().name())),
-        );
+        let name = format!("{}.{extension}", icon.symbol().name());
+        #[cfg(target_family = "wasm")]
+        {
+            let mime = if png { "image/png" } else { "image/svg+xml" };
+            web::download(&name, mime, &bytes);
+            self.status = "Icon downloaded".into();
+            cx.notify();
+        }
+        #[cfg(not(target_family = "wasm"))]
+        self.save(&name, bytes, cx);
+    }
+
+    #[cfg(not(target_family = "wasm"))]
+    fn save(&mut self, name: &str, bytes: Vec<u8>, cx: &mut Context<Self>) {
+        let receiver = cx.prompt_for_new_path(std::path::Path::new("."), Some(name));
         cx.spawn(async move |this, cx| {
             if let Ok(Ok(Some(path))) = receiver.await {
                 let result = std::fs::write(path, bytes);
@@ -762,6 +775,19 @@ fn window_options(cx: &App) -> WindowOptions {
     }
 }
 
+#[cfg(target_family = "wasm")]
+mod web {
+    use wasm_bindgen::prelude::*;
+
+    #[wasm_bindgen]
+    extern "C" {
+        /// Saves `bytes` through the browser's download, defined by the page.
+        #[wasm_bindgen(js_name = materialSymbolsDownload)]
+        pub fn download(name: &str, mime: &str, bytes: &[u8]);
+    }
+}
+
+#[cfg(not(target_family = "wasm"))]
 fn main() {
     if std::env::args().nth(1).as_deref() == Some("--capture") {
         let directory = std::env::args()
@@ -770,9 +796,21 @@ fn main() {
         capture(&directory);
         return;
     }
-    gpui_platform::application()
+    run(gpui_platform::application());
+}
+
+/// Opens the browser window in `application`, natively or on the web.
+pub fn run(application: Application) {
+    application
         .with_assets(Assets::with(SymbolsSource))
         .run(|cx| {
+            // The web has no system fonts; this is its default UI family.
+            #[cfg(target_family = "wasm")]
+            cx.text_system()
+                .add_fonts(vec![Cow::Borrowed(include_bytes!(
+                    "../../web/fonts/IBMPlexSans-Regular.ttf"
+                ))])
+                .expect("load the UI font");
             gpui_base::init(cx);
             gpui_kit_material::init(cx);
             cx.open_window(window_options(cx), |window, cx| {
@@ -784,8 +822,9 @@ fn main() {
 }
 
 /// Render the README states through the native headless renderer.
+#[cfg(not(target_family = "wasm"))]
 fn capture(directory: &str) {
-    use std::sync::Arc;
+    use std::{path::Path, sync::Arc};
     std::fs::create_dir_all(directory).unwrap();
     let mut app = HeadlessAppContext::with_platform(
         gpui_platform::current_platform(true).text_system(),

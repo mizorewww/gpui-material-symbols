@@ -2327,6 +2327,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "gpui-material-symbols-web"
+version = "0.1.0"
+dependencies = [
+ "gpui-base 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gpui-kit-material",
+ "gpui-material-symbols",
+ "gpui-pre",
+ "gpui-pre-platform",
+ "resvg 0.46.0",
+ "tiny-skia",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gpui-pre"
 version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
