@@ -36,9 +36,13 @@ The integration tests exercise Kit's `IconNamed`, conversion into component
 `Icon`, `Button::icon`, `PopupMenuItem::icon`, `.component()`, `.embedded()`,
 and composition with real `gpui_kit::assets::Assets`, including asset listing
 for unrelated prefixes. Browser interaction tests dispatch real clicks and
-input for sorting, details, search, and scroll preservation across reflow.
-Neither covers exhaustive manual interaction or accessibility review.
+input to open and close details, search and clear the search, and check the
+name sort and that resizing the window keeps the scroll position. The native
+browser window was launched and stayed alive for six seconds. Neither covers
+exhaustive manual interaction or accessibility review.
 
-Not run: GitHub Actions (the workflow in `ci.yml` is not enabled), Linux or
+Not exercised: dragging or double-clicking the browser's custom title bar,
+and the caption buttons on Windows and Linux, which need a real desktop
+session. Not run: GitHub Actions (the workflow in `ci.yml` is not enabled), Linux or
 Windows builds, and `scripts/sync_supplemental.py` against the upstream
 repository (only its missing-revision error path was exercised).
