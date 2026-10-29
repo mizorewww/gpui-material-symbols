@@ -25,7 +25,7 @@ cargo run --no-default-features --features material-browser --example material_s
 cargo run --features showcase --example showcase
 
 # Export one SVG from the command line
-cargo run --no-default-features --example export -- home rounded > home.svg
+cargo run --no-default-features --features embed-assets --example export -- home rounded > home.svg
 ```
 
 The browser also builds for the web; see the [web preview guide](docs/web.md).
@@ -65,8 +65,9 @@ SVG icon.
 
 - **Complete:** the full union of Google's variable-font names and SVG-only
   names, pinned to an exact upstream commit with recorded checksums.
-- **Offline:** the official fonts and SVGs are embedded. Builds and apps never
-  download anything or register system fonts.
+- **Offline:** with the default `embed-assets` feature, the official fonts and
+  SVGs are embedded; builds and apps never download anything or register
+  system fonts.
 - **Validated:** out-of-range axes and unsupported variants are errors, never
   silently substituted icons.
 
@@ -182,7 +183,7 @@ assert_eq!(odd.to_svg(), Err(Error::UnsupportedVariant));
 
 ```toml
 [dependencies]
-gpui-material-symbols = { git = "https://github.com/mizorewww/gpui-material-symbols", default-features = false }
+gpui-material-symbols = { git = "https://github.com/mizorewww/gpui-material-symbols", default-features = false, features = ["embed-assets"] }
 ```
 
 ```rust
@@ -191,6 +192,23 @@ use gpui_material_symbols::{Style, Symbol};
 let svg = Symbol::HOME.icon().style(Style::Rounded).to_svg().unwrap();
 assert!(svg.starts_with("<svg"));
 ```
+
+### Load the fonts at runtime
+
+The default `embed-assets` feature builds about 50 MB of fonts and SVGs into
+the binary. Leave it out, for example on the web, and supply each `Asset`
+when you have its file; until then `to_svg` returns `Error::NotLoaded`:
+
+```rust,ignore
+use gpui_material_symbols::{Asset, Style};
+
+let font = Asset::Font(Style::Outlined);
+font.provide(downloaded_bytes)?; // exactly assets/MaterialSymbolsOutlined.ttf
+assert!(font.is_available());
+```
+
+`Icon::required_asset` names the file an icon needs. The
+[web preview](docs/web.md) downloads only the styles it shows this way.
 
 ## Help and contributing
 

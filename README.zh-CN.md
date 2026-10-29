@@ -22,7 +22,7 @@ cargo run --no-default-features --features material-browser --example material_s
 cargo run --features showcase --example showcase
 
 # 命令行导出单个 SVG
-cargo run --no-default-features --example export -- home rounded > home.svg
+cargo run --no-default-features --features embed-assets --example export -- home rounded > home.svg
 ```
 
 图标浏览器也可以构建为网页版，见 [网页预览说明](docs/web.md)。
@@ -59,7 +59,7 @@ Kit `Button` 中的三种风格、连续变化的填充轴，以及内嵌 SVG �
 ## 特性
 
 - **完整**：Google 可变字体名称与仅有 SVG 的名称的并集，固定到确切的上游提交并记录校验值。
-- **离线**：官方字体和 SVG 全部内嵌，构建和运行时不联网、不注册系统字体。
+- **离线**：默认的 `embed-assets` feature 内嵌全部官方字体和 SVG，构建和运行时不联网、不注册系统字体。
 - **严格校验**：越界的轴值和不支持的变体会返回错误，绝不悄悄换成近似图标。
 
 | 轴 | 取值 |
@@ -168,7 +168,7 @@ assert_eq!(odd.to_svg(), Err(Error::UnsupportedVariant));
 
 ```toml
 [dependencies]
-gpui-material-symbols = { git = "https://github.com/mizorewww/gpui-material-symbols", default-features = false }
+gpui-material-symbols = { git = "https://github.com/mizorewww/gpui-material-symbols", default-features = false, features = ["embed-assets"] }
 ```
 
 ```rust
@@ -177,6 +177,21 @@ use gpui_material_symbols::{Style, Symbol};
 let svg = Symbol::HOME.icon().style(Style::Rounded).to_svg().unwrap();
 assert!(svg.starts_with("<svg"));
 ```
+
+### 运行时加载字体
+
+默认的 `embed-assets` feature 会把约 50 MB 的字体和 SVG 编进二进制。不启用它（例如网页版）时，
+拿到文件后用 `Asset::provide` 逐个提供；在此之前 `to_svg` 返回 `Error::NotLoaded`：
+
+```rust,ignore
+use gpui_material_symbols::{Asset, Style};
+
+let font = Asset::Font(Style::Outlined);
+font.provide(downloaded_bytes)?; // 必须与 assets/MaterialSymbolsOutlined.ttf 完全一致
+assert!(font.is_available());
+```
+
+`Icon::required_asset` 给出某个图标需要的文件。[网页预览](docs/web.md)就是这样只下载当前显示的风格。
 
 ## 帮助与贡献
 

@@ -5,7 +5,8 @@
 ```sh
 python3 scripts/sync_assets.py --verify     # local checksums and coverage; no network
 cargo fmt --all -- --check
-cargo test --no-default-features            # catalog, every variant, raster parity
+cargo test --no-default-features --features embed-assets  # catalog, every variant, raster parity
+cargo test --no-default-features            # assets supplied at runtime
 cargo test --test integration               # Longbridge GPUI Kit slots and assets
 cargo check --features showcase --example showcase
 cargo test --no-default-features --features material-browser --example material_symbols
@@ -48,7 +49,7 @@ git -C .research/material-design-icons fetch --depth 1 --filter=blob:none \
 python3 scripts/sync_supplemental.py .research/material-design-icons
 
 python3 scripts/sync_assets.py --verify
-cargo test --no-default-features
+cargo test --no-default-features --features embed-assets
 ```
 
 The extractor reads Git objects directly, so the millions of SVG files are
