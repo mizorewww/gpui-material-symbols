@@ -52,11 +52,10 @@ impl Render for Showcase {
 }
 fn main() {
     #[cfg(feature = "showcase-capture")]
-    if let Some(path) = std::env::args()
-        .nth(1)
-        .filter(|s| s == "--capture")
-        .and_then(|_| std::env::args().nth(2))
-    {
+    if std::env::args().nth(1).as_deref() == Some("--capture") {
+        let path = std::env::args()
+            .nth(2)
+            .expect("usage: --capture <file.png>");
         capture(&path);
         return;
     }
