@@ -274,10 +274,11 @@ impl Browser {
                 }
             }))
             .on_click(|event, window, _| {
+                // Windows zooms on a double click in the drag area by itself.
                 if event.click_count() == 2 {
                     if cfg!(target_os = "macos") {
                         window.titlebar_double_click();
-                    } else {
+                    } else if !cfg!(target_os = "windows") {
                         window.zoom_window();
                     }
                 }
@@ -792,6 +793,9 @@ fn window_options(cx: &App) -> WindowOptions {
             appears_transparent: true,
             traffic_light_position: Some(TRAFFIC_LIGHTS),
         }),
+        // The app bar moves the window itself; without this AppKit also treats
+        // it as a native title bar, zooming twice and delaying clicks in it.
+        app_owns_titlebar_drag: true,
         window_decorations: Some(WindowDecorations::Client),
         window_min_size: Some(size(px(720.), px(480.))),
         ..Default::default()
