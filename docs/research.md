@@ -39,8 +39,8 @@ Context7 documentation was cross-checked against these current source files.
 
 Google source: https://github.com/google/material-design-icons at
 `10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7`. Downloaded Git objects, complete TTFs
-and codepoint catalogs. Sparse checkout avoids expanding about 4.87 million
-files. All resources are pinned and checksummed in `assets/manifest.json`.
+and codepoint catalogs. A no-checkout clone read through `git cat-file`
+avoids expanding about 4.87 million files. All resources are pinned and checksummed in `assets/manifest.json`.
 
 All three font catalogs contain 4,304 names including aliases. The independent
 `symbols/web` tree contains 4,157 names: 55 absent from fonts, while 202 font
