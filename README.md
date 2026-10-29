@@ -15,11 +15,12 @@ standard icon slot.
 ## Run the examples
 
 ```sh
+git clone https://github.com/mizorewww/gpui-kit-material
 git clone https://github.com/mizorewww/gpui-material-symbols
 cd gpui-material-symbols
 
 # Icon browser for the whole catalog (built with gpui-kit-material)
-cargo run --no-default-features --features material-browser --example material_symbols
+cargo run -p gpui-material-symbols-browser --bin material_symbols
 
 # Material Symbols in Longbridge GPUI Kit components
 cargo run --features showcase --example showcase
@@ -28,9 +29,19 @@ cargo run --features showcase --example showcase
 cargo run --no-default-features --features embed-assets --example export -- home rounded > home.svg
 ```
 
+Workspace patches use the adjacent `../gpui-kit-material` checkout to share its
+audited Kit/GPUI compatibility fixes. Keep both repositories updated together.
+
 The browser also builds for the web; see the [web preview guide](docs/web.md).
 
 ## Screenshots
+
+The native browser is the independent `gpui-material-symbols-browser` workspace
+package. Its default `material-browser` feature embeds the assets. The former
+root command `--features material-browser --example material_symbols` is replaced
+by `-p gpui-material-symbols-browser --bin material_symbols`; the root library no
+longer depends on Material, which can now consume Symbols without a reverse edge.
+The `showcase` and `export` examples keep their existing entry points.
 
 ### Icon browser (`material_symbols`)
 

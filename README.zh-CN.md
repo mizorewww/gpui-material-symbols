@@ -12,11 +12,12 @@ Material Symbols：4,359 个图标名称，Outlined / Rounded / Sharp 三种风�
 ## 运行示例
 
 ```sh
+git clone https://github.com/mizorewww/gpui-kit-material
 git clone https://github.com/mizorewww/gpui-material-symbols
 cd gpui-material-symbols
 
 # 全部图标的浏览器（基于 gpui-kit-material）
-cargo run --no-default-features --features material-browser --example material_symbols
+cargo run -p gpui-material-symbols-browser --bin material_symbols
 
 # 在 Longbridge GPUI Kit 组件中使用 Material Symbols
 cargo run --features showcase --example showcase
@@ -28,6 +29,13 @@ cargo run --no-default-features --features embed-assets --example export -- home
 图标浏览器也可以构建为网页版，见 [网页预览说明](docs/web.md)。
 
 ## 截图
+
+原生浏览器属于独立的 workspace package `gpui-material-symbols-browser`，
+默认启用该 package 的 `material-browser` feature 并嵌入图标资源。
+原根包命令 `--features material-browser --example material_symbols` 已替换为
+`-p gpui-material-symbols-browser --bin material_symbols`。根 symbols 库不再反向
+依赖 Material，因此 Material 可以使用 Symbols 而不形成依赖环。
+`showcase` 和 `export` 示例的入口保持不变。
 
 ### 图标浏览器（`material_symbols`）
 
@@ -206,3 +214,5 @@ assert!(font.is_available());
 
 Apache-2.0，见 [LICENSE](LICENSE)。Google 的图标资源同为 Apache-2.0（[`assets/LICENSE`](assets/LICENSE)）；
 示例使用的第三方资源见 [NOTICE](NOTICE)。本项目与 Google 无关联，也未获其背书。
+
+工作区补丁使用相邻的 `../gpui-kit-material` 仓库以统一 Kit/GPUI 兼容修复；请同步更新两个仓库。

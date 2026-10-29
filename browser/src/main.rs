@@ -1,12 +1,8 @@
 //! A native Material Symbols browser built with gpui-kit-material components.
 //!
-//! `cargo run --no-default-features --features material-browser --example material_symbols`
+//! `cargo run -p gpui-material-symbols-browser --bin material_symbols`
 //!
 //! The `web` crate builds the same browser for the web with `run_web`.
-// GPUI macros prefer an installed Kit facade even when its optional feature is
-// disabled. Keep their generated path on the same backend for this example.
-#[cfg(not(feature = "gpui-kit"))]
-extern crate gpui as gpui_kit;
 mod catalog;
 mod export;
 use catalog::{Entry, Sort};
@@ -76,7 +72,7 @@ fn glyph(symbol: Symbol, size: f32) -> Svg {
         .flex_shrink_0()
 }
 
-fn icon_button(id: impl Into<ElementId>, symbol: Symbol, label: &str) -> gpui_base::Button {
+fn icon_button(id: impl Into<ElementId>, symbol: Symbol, label: &str) -> MaterialButton {
     material_button(id, ButtonVariant::Text)
         .accessibility_label(label.to_owned())
         .w(rem(40.))

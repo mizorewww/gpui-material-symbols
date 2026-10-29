@@ -9,7 +9,7 @@ cargo test --no-default-features --features embed-assets  # catalog, every varia
 cargo test --no-default-features            # assets supplied at runtime
 cargo test --test integration               # Longbridge GPUI Kit slots and assets
 cargo check --features showcase --example showcase
-cargo test --no-default-features --features material-browser --example material_symbols
+cargo test -p gpui-material-symbols-browser --bin material_symbols
 cargo clippy --all-targets --all-features -- -D warnings
 ```
 
@@ -29,10 +29,11 @@ cargo update -p gpui-kit
 
 Inspect current Kit main APIs (`IconNamed`, `component::Icon`, `assets`,
 `application`, `init`, `open_window`), then run the validation commands and
-rebuild the showcase. The `material-browser` and `showcase-capture` features
-pin `gpui-pre`/`gpui-pre-platform` exactly; keep that pin equal to the version
-Kit and `gpui-kit-material` use, or those features stop resolving or pull in a
-second backend.
+rebuild the showcase. The independent `browser` package and the root
+`showcase-capture` feature pin `gpui-pre`/`gpui-pre-platform` exactly; keep those
+pins equal to the version Kit and `gpui-kit-material` use, or the consumers stop
+resolving or pull in a second backend. The root symbols library must not depend
+on `gpui-kit-material`: Material itself consumes this library.
 
 ## Updating Google assets
 
@@ -62,7 +63,7 @@ scripts or touch the network for assets.
 
 ## Browser catalog metadata
 
-`examples/material_symbols/assets/catalog.tsv` holds categories, tags and
+`browser/src/assets/catalog.tsv` holds categories, tags and
 popularity from Google Fonts' live metadata endpoint, which is not pinned:
 
 ```sh
@@ -72,8 +73,8 @@ python3 scripts/update-symbol-catalog.py
 ## Screenshots
 
 ```sh
-cargo run --no-default-features --features material-browser \
-  --example material_symbols -- --capture target/captures
+cargo run -p gpui-material-symbols-browser \
+  --bin material_symbols -- --capture target/captures
 cargo run --features showcase-capture --example showcase -- \
   --capture docs/screenshots/showcase.png
 ```

@@ -15,6 +15,6 @@ integration for Longbridge GPUI Kit and is not affiliated with or endorsed by Go
 
 The web build's repository link draws the GitHub mark from Primer Octicons
 19.42.0, licensed under the MIT License
-(examples/material_symbols/assets/github-mark.LICENSE; source and SHA-256 in
+(browser/src/assets/github-mark.LICENSE; source and SHA-256 in
 github-mark.SOURCES.json). The GitHub mark is a trademark of GitHub, Inc.,
 used under GitHub's logo guidelines to link to this project's repository.

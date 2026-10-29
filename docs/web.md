@@ -4,12 +4,19 @@ The `material_symbols` icon browser also runs in the browser, compiled to
 WebAssembly with GPUI's web platform. It is live at
 <https://m3symbols.mizore.blog>.
 
-The `web` crate includes `examples/material_symbols/main.rs` unchanged apart
+The `web` crate includes `browser/src/main.rs` unchanged apart
 from four web paths: the icon fonts download at runtime (below), the app bar
 links the GitHub repository, exports download through the page instead of a
 save dialog, and the app registers IBM Plex Sans (SIL OFL, `web/fonts/`), GPUI
 Web's default UI font. It renders through WebGPU; GPUI Web can fall back to
 WebGL 2, which this site has not been tested with.
+
+The Web package disables default features on both Symbols and Material. This
+keeps Material's default `embedded-symbols` feature from embedding the complete
+font/SVG pack and bypassing the browser's on-demand asset loader. Build the Web
+package explicitly with `-p gpui-material-symbols-web` (as `scripts/build-web.sh`
+does). Building every workspace package for WASM can unify the native browser's
+asset-embedding feature into the Web graph; it is not the lean Web build.
 
 On load the page asks for a GitHub star in a dialog (`web/www/index.html`).
 Choosing "Star on GitHub" or "Don't show this again" stops it for that browser

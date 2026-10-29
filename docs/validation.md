@@ -1,5 +1,10 @@
 # Validation record — Longbridge GPUI Kit main
 
+This is a historical validation record from before the native consumer moved to
+its own workspace package. Commands and results below describe that tested
+revision, not validation of the package split or new dependency patches.
+Current commands are in [maintenance.md](maintenance.md).
+
 Validated locally on macOS on 2026-10-29 with rustc/Cargo 1.99.1, at the
 commit that adds this record. It replaces the earlier record, which predated
 the `material-browser` example and its dependencies.

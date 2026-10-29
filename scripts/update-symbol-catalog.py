@@ -20,6 +20,6 @@ for name in sorted(names):
     category = icon.get('categories', ['Other'])[0].replace('Audio&Video', 'Audio & Video')
     tags = ' '.join(' '.join(icon.get('tags', [])).split()) or name.replace('_', ' ')
     rows.append(f"{name}\t{category}\t{icon.get('popularity', 0)}\t{tags}\n")
-target = ROOT / 'examples/material_symbols/assets/catalog.tsv'
+target = ROOT / 'browser/src/assets/catalog.tsv'
 target.write_text(''.join(rows))
 print(f'Wrote {len(rows)} entries to {target}')

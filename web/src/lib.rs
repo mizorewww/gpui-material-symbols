@@ -1,6 +1,6 @@
-//! Browser entry point: the `material_symbols` example, compiled for the web.
+//! Browser entry point: the `material_symbols` consumer, compiled for the web.
 #[cfg(target_family = "wasm")]
-#[path = "../../examples/material_symbols/main.rs"]
+#[path = "../../browser/src/main.rs"]
 mod browser;
 
 /// Starts the browser. The page supplies the icon fonts and SVG pack as the
