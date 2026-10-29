@@ -32,12 +32,10 @@ publish; the browser never substitutes a different variant.
 
 ## Components
 
-The search field, connected button groups (style, sort), switch, sliders,
-buttons, side sheet, caption buttons and `title_bar_control` come from
-`gpui-kit-material`; behavior and accessibility come from GPUI Base. Two
-pieces are still written in this example and should move to the kit: the
-status snackbar, and the app bar's window chrome (drag-to-move, double-click
-zoom and the traffic-light inset).
+Every control comes from `gpui-kit-material`: the title bar and its caption
+buttons, search field, connected button groups (style, sort), switch, sliders,
+buttons, side sheet and snackbar. Behavior and accessibility come from GPUI
+Base.
 
 ## Verification and captures
 
@@ -53,10 +51,9 @@ Metal device. Headless captures show the window content only, without the
 system's traffic lights. Interaction tests dispatch real clicks and input:
 opening and closing details, choosing the A–Z sort, switching style and fill,
 toggling the theme, searching with no results and clearing the search. They
-also check that only empty app-bar space starts a window drag, that the open
-details sheet takes columns from the grid, and that resizing keeps the scroll
-position. Export tests decode the PNG and check its dimensions and pixel
-colors.
+also check that the open details sheet takes columns from the grid and that
+resizing keeps the scroll position; the kit tests its title bar and snackbar.
+Export tests decode the PNG and check its dimensions and pixel colors.
 
 ## Data
 
