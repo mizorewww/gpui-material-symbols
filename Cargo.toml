@@ -1,0 +1,37 @@
+[package]
+name = "gpui-material-symbols"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+description = "Complete variable Google Material Symbols as SVGs for GPUI and gpuikit"
+repository = "https://github.com/mizorewww/gpui-material-symbols"
+readme = "README.md"
+exclude = [".research/", "docs/", "scripts/", ".github/"]
+
+[features]
+default = ["gpui"]
+gpui = ["dep:gpui", "dep:anyhow"]
+showcase = ["gpui", "dep:gpuikit", "dep:gpui_platform"]
+
+[dependencies]
+ttf-parser = { version = "0.25", default-features = false, features = ["std", "variable-fonts"] }
+gpui = { package = "gpui-unofficial", version = "=1.18.0", optional = true }
+anyhow = { version = "1", optional = true }
+
+gpuikit = { version = "0.9", optional = true }
+gpui_platform = { package = "gpui-platform-gpui-unofficial", version = "=1.18.0", optional = true, features = ["font-kit", "runtime_shaders"] }
+
+[dev-dependencies]
+roxmltree = "0.21"
+resvg = { version = "0.46", default-features = false }
+
+[profile.dev]
+debug = "line-tables-only"
+
+[[example]]
+name = "export"
+required-features = []
+
+[[example]]
+name = "showcase"
+required-features = ["showcase"]
