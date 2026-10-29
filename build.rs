@@ -69,7 +69,7 @@ fn main() {
             context()
         );
         assert!(
-            offset + len <= pack_len,
+            offset.checked_add(len).is_some_and(|end| end <= pack_len),
             "{}: slice exceeds supplemental.bin",
             context()
         );
