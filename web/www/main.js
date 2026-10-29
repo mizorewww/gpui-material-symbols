@@ -11,9 +11,10 @@ globalThis.materialSymbolsDownload = (name, mime, bytes) => {
 const loading = document.getElementById("loading");
 let started = false;
 try {
-  const { default: init, run } = await import("./wasm/gpui_material_symbols_web.js");
-  await init();
-  run();
+  const { default: init, run } = await import("%JS%");
+  await init({ module_or_path: "%WASM%" });
+  // Each asset's file name, then the URL it downloads from when first needed.
+  run(%ASSETS%);
   loading?.remove();
   started = true;
 } catch (error) {

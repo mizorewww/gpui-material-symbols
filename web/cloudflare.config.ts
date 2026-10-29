@@ -7,7 +7,7 @@ export default defineConfig({
 		entrypoint: "worker.js",
 		assets: {
 			runWorkerFirst: [
-				"/wasm/*",
+				"/m/*",
 			],
 		},
 		domains: [

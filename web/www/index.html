@@ -11,6 +11,11 @@
     <meta property="og:url" content="https://m3symbols.mizore.blog/">
     <link rel="canonical" href="https://m3symbols.mizore.blog/">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <!-- Download the module and the default style's font in parallel; the
+         other styles and the SVG-only pack load when first shown. -->
+    <link rel="modulepreload" href="%JS%">
+    <link rel="preload" href="%WASM%" as="fetch" type="application/wasm" crossorigin>
+    <link rel="preload" href="%OUTLINED%" as="fetch" crossorigin>
     <style>
       /* The browser's own canvas and ink colors, so the loading screen does
          not flash a different color before the first frame. */
@@ -99,7 +104,7 @@
     <div id="loading" role="status">
       <div class="spinner"></div>
       <p>Loading Material Symbols…</p>
-      <p class="hint">The full icon catalog is a one-time ~17 MB download.</p>
+      <p class="hint">Icons appear as soon as their font arrives.</p>
     </div>
     <dialog id="star" aria-labelledby="star-title" aria-describedby="star-text">
       <h2 id="star-title">Star on GitHub</h2>

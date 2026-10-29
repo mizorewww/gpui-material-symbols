@@ -2,7 +2,7 @@
 //!
 //! `cargo run --no-default-features --features material-browser --example material_symbols`
 //!
-//! The `web` crate builds the same browser for the web with [`run`].
+//! The `web` crate builds the same browser for the web with `run_with_assets`.
 // GPUI macros prefer an installed Kit facade even when its optional feature is
 // disabled. Keep their generated path on the same backend for this example.
 #[cfg(not(feature = "gpui-kit"))]
@@ -54,9 +54,19 @@ impl AssetSource for SymbolsSource {
     }
 }
 
+/// The icon's SVG, or an empty one of the same size until the web build has
+/// downloaded the asset it needs.
+fn symbol_svg(icon: SymbolIcon) -> Svg {
+    let svg = svg();
+    if loader::ready(icon.required_asset()) {
+        svg.path(icon.asset_path())
+    } else {
+        svg
+    }
+}
+
 fn glyph(symbol: Symbol, size: f32) -> Svg {
-    svg()
-        .path(symbol.icon().asset_path())
+    symbol_svg(symbol.icon())
         .size(rem(size))
         .text_color(color(ColorRole::INK))
         .flex_shrink_0()
@@ -474,8 +484,7 @@ impl Browser {
             .accessibility_label(name.clone())
             .when(selected, |e| e.bg(color(ColorRole::SECONDARY_CONTAINER)))
             .child(if icon.is_supported() {
-                svg()
-                    .path(icon.asset_path())
+                symbol_svg(icon)
                     .size(rem(36.))
                     .text_color(color(ColorRole::INK))
                     .into_any_element()
@@ -565,8 +574,7 @@ impl Browser {
                     .border_1()
                     .border_color(color(ColorRole::HAIRLINE))
                     .child(if supported {
-                        svg()
-                            .path(icon.asset_path())
+                        symbol_svg(icon)
                             .size(px(self.preview_size))
                             .text_color(preview_color)
                             .into_any_element()
@@ -674,7 +682,12 @@ impl Browser {
             return;
         }
         let Ok(bytes) = export::encode(icon, self.preview_size as u32, &color, png) else {
-            self.status = "Could not render icon".into();
+            self.status = if loader::ready(icon.required_asset()) {
+                "Could not render icon"
+            } else {
+                "The icon is still loading"
+            }
+            .into();
             cx.notify();
             return;
         };
@@ -721,6 +734,9 @@ fn title_case(name: &str) -> String {
 
 impl Render for Browser {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        if let Some(failure) = loader::take_failure() {
+            self.status = failure;
+        }
         let palette = self.palette(cx);
         theme::apply_palette(palette, window, cx);
         theme::apply_scale(1., window);
@@ -800,6 +816,118 @@ fn window_options(cx: &App) -> WindowOptions {
     }
 }
 
+/// The native build embeds every asset.
+#[cfg(not(target_family = "wasm"))]
+mod loader {
+    pub fn ready(asset: gpui_material_symbols::Asset) -> bool {
+        asset.is_available()
+    }
+
+    pub fn take_failure() -> Option<gpui::SharedString> {
+        None
+    }
+}
+
+/// Downloads the assets the web build does not embed when an icon first needs
+/// one, and redraws when it arrives. A failed download is reported and retried
+/// after a pause.
+#[cfg(target_family = "wasm")]
+pub mod loader {
+    use futures::AsyncReadExt as _;
+    use gpui::{AsyncApp, SharedString, http_client::AsyncBody};
+    use gpui_material_symbols::Asset;
+    use std::{cell::RefCell, collections::HashMap, time::Duration};
+
+    const RETRY: Duration = Duration::from_secs(5);
+
+    struct Loader {
+        app: AsyncApp,
+        urls: HashMap<Asset, String>,
+        requested: Vec<Asset>,
+        failure: Option<SharedString>,
+    }
+
+    thread_local! {
+        static LOADER: RefCell<Option<Loader>> = const { RefCell::new(None) };
+    }
+
+    /// Where each asset is served, by its file name.
+    pub fn init(urls: &HashMap<String, String>, cx: &gpui::App) {
+        let urls = Asset::ALL
+            .into_iter()
+            .filter_map(|asset| Some((asset, urls.get(asset.file_name())?.clone())))
+            .collect();
+        LOADER.set(Some(Loader {
+            app: cx.to_async(),
+            urls,
+            requested: Vec::new(),
+            failure: None,
+        }));
+    }
+
+    /// A download failure not yet shown to the user.
+    pub fn take_failure() -> Option<SharedString> {
+        LOADER.with_borrow_mut(|loader| loader.as_mut()?.failure.take())
+    }
+
+    /// Whether `asset` is ready, starting its download if it is not.
+    pub fn ready(asset: Asset) -> bool {
+        if asset.is_available() {
+            return true;
+        }
+        LOADER.with_borrow_mut(|loader| {
+            let Some(loader) = loader else { return };
+            if loader.requested.contains(&asset) {
+                return;
+            }
+            loader.requested.push(asset);
+            let Some(url) = loader.urls.get(&asset).cloned() else {
+                log::error!("no URL for {}", asset.file_name());
+                return;
+            };
+            let app = loader.app.clone();
+            app.foreground_executor()
+                .spawn({
+                    let app = app.clone();
+                    async move {
+                        let result = match download(&app, &url).await {
+                            Ok(bytes) => asset.provide(bytes).map_err(anyhow::Error::from),
+                            Err(error) => Err(error),
+                        };
+                        if let Err(error) = result {
+                            log::error!("{url}: {error:#}");
+                            LOADER.with_borrow_mut(|loader| {
+                                if let Some(loader) = loader {
+                                    loader.failure =
+                                        Some("Could not download icons; retrying".into());
+                                }
+                            });
+                            app.update(|cx| cx.refresh_windows());
+                            app.background_executor().timer(RETRY).await;
+                            LOADER.with_borrow_mut(|loader| {
+                                if let Some(loader) = loader {
+                                    loader.requested.retain(|a| *a != asset);
+                                }
+                            });
+                        }
+                        app.update(|cx| cx.refresh_windows());
+                    }
+                })
+                .detach();
+        });
+        false
+    }
+
+    async fn download(app: &AsyncApp, url: &str) -> anyhow::Result<Vec<u8>> {
+        let client = app.update(|cx| cx.http_client());
+        let mut response = client.get(url, AsyncBody::default(), true).await?;
+        anyhow::ensure!(response.status().is_success(), "HTTP {}", response.status());
+        let mut bytes = Vec::new();
+        response.body_mut().read_to_end(&mut bytes).await?;
+        Ok(bytes)
+    }
+}
+
 #[cfg(target_family = "wasm")]
 mod web {
     use wasm_bindgen::prelude::*;
@@ -824,11 +952,24 @@ fn main() {
     run(gpui_platform::application());
 }
 
-/// Opens the browser window in `application`, natively or on the web.
-pub fn run(application: Application) {
+/// Opens the browser window natively.
+#[cfg(not(target_family = "wasm"))]
+fn run(application: Application) {
+    start(application, |_| {});
+}
+
+/// Opens the browser on the web, downloading each asset from its URL in
+/// `urls`, keyed by file name, when an icon first needs it.
+#[cfg(target_family = "wasm")]
+pub fn run_with_assets(application: Application, urls: std::collections::HashMap<String, String>) {
+    start(application, move |cx| loader::init(&urls, cx));
+}
+
+fn start(application: Application, setup: impl FnOnce(&mut App) + 'static) {
     application
         .with_assets(Assets::with(SymbolsSource))
         .run(|cx| {
+            setup(cx);
             // The web has no system fonts; this is its default UI family.
             #[cfg(target_family = "wasm")]
             cx.text_system()
