@@ -5,18 +5,26 @@ fn main() {
     for (index, style) in ["Outlined", "Rounded", "Sharp"].iter().enumerate() {
         let path = format!("assets/MaterialSymbols{style}.codepoints");
         println!("cargo:rerun-if-changed={path}");
-        for line in fs::read_to_string(path).unwrap().lines() {
+        let codepoints = fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {path}: {e}"));
+        for line in codepoints.lines() {
             let mut fields = line.split_whitespace();
-            let name = fields.next().unwrap();
-            let codepoint = u32::from_str_radix(fields.next().unwrap(), 16).unwrap();
-            assert!(char::from_u32(codepoint).is_some());
+            let (Some(name), Some(codepoint)) = (fields.next(), fields.next()) else {
+                panic!("{path}: malformed line {line:?}");
+            };
+            let codepoint = u32::from_str_radix(codepoint, 16)
+                .unwrap_or_else(|_| panic!("{path}: bad codepoint in {line:?}"));
+            assert!(
+                char::from_u32(codepoint).is_some(),
+                "{path}: invalid scalar in {line:?}"
+            );
             let entry = catalog.entry(name.to_owned()).or_default();
             assert_eq!(entry[index], 0, "duplicate symbol {name}");
             entry[index] = codepoint;
         }
     }
     println!("cargo:rerun-if-changed=assets/supplemental.tsv");
-    let supplemental = fs::read_to_string("assets/supplemental.tsv").unwrap();
+    let supplemental =
+        fs::read_to_string("assets/supplemental.tsv").expect("read assets/supplemental.tsv");
     for line in supplemental.lines() {
         let name = line.split('/').next().unwrap();
         catalog.entry(name.to_owned()).or_default();
@@ -37,13 +45,36 @@ fn main() {
         output.push_str(&format!("({name:?}, {codepoints:?}),\n"));
     }
     output.push_str("];\n");
+    println!("cargo:rerun-if-changed=assets/supplemental.bin");
+    let pack_len = fs::metadata("assets/supplemental.bin")
+        .expect("read assets/supplemental.bin")
+        .len() as usize;
     output.push_str("pub(crate) static SUPPLEMENTAL: &[(&str, usize, usize)] = &[\n");
-    for line in supplemental.lines() {
-        let fields: Vec<_> = line.split('\t').collect();
-        output.push_str(&format!(
-            "({:?}, {}, {}),\n",
-            fields[0], fields[1], fields[2]
-        ));
+    let mut previous = "";
+    for (number, line) in supplemental.lines().enumerate() {
+        let context = || format!("assets/supplemental.tsv:{}", number + 1);
+        let [path, offset, len] = line.split('\t').collect::<Vec<_>>()[..] else {
+            panic!("{}: expected path, offset and length", context());
+        };
+        let offset: usize = offset
+            .parse()
+            .unwrap_or_else(|_| panic!("{}: offset", context()));
+        let len: usize = len
+            .parse()
+            .unwrap_or_else(|_| panic!("{}: length", context()));
+        // Icon::supplemental_entry binary-searches this table and slices the pack.
+        assert!(
+            previous < path,
+            "{}: paths must be strictly sorted",
+            context()
+        );
+        assert!(
+            offset + len <= pack_len,
+            "{}: slice exceeds supplemental.bin",
+            context()
+        );
+        previous = path;
+        output.push_str(&format!("({path:?}, {offset}, {len}),\n"));
     }
     output.push_str("];\n");
     fs::write(
