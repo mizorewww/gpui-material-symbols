@@ -1,10 +1,16 @@
 name: CI
 on: [push, pull_request]
+env:
+  # Cargo resolves every optional git dependency of this package, including the
+  # private gpui-kit-material, even for --no-default-features builds.
+  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
 jobs:
   core:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Authorize private Git dependencies
+        run: git config --global url."https://x-access-token:${{ secrets.DEPENDENCY_READ_TOKEN }}@github.com/".insteadOf "https://github.com/"
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
@@ -15,9 +21,12 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Authorize private Git dependencies
+        run: git config --global url."https://x-access-token:${{ secrets.DEPENDENCY_READ_TOKEN }}@github.com/".insteadOf "https://github.com/"
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
       - run: cargo test --locked --test integration
       - run: cargo check --locked --features showcase --example showcase
+      - run: cargo test --locked --no-default-features --features material-browser --example material_symbols
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings
