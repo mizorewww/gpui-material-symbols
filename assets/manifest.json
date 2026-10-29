@@ -1,6 +1,7 @@
 {
   "repository": "https://github.com/google/material-design-icons",
   "revision": "10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7",
+  "supplemental_revision": "10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7",
   "sha256": {
     "MaterialSymbolsOutlined.ttf": "f7837ba8573d9a7a74931618ced8307bc81f96d49af296bf6c8052c772ed5282",
     "MaterialSymbolsOutlined.codepoints": "a7404d9e5a1b63f496cf05ace45d386075886b5a7f123fba9f29527cb6006fde",
