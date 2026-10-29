@@ -35,7 +35,7 @@ Material Symbols：4,359 个图标名称，Outlined / Rounded / Sharp 三种风�
 
 | 图标详情 | 搜索 |
 | --- | --- |
-| ![Search 图标的详情面板，包含导出按钮和生成的 Rust 代码](docs/screenshots/material-symbols-detail.png) | ![搜索 “home” 的结果](docs/screenshots/material-symbols-search.png) |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/material-symbols-detail-dark.png"><img src="docs/screenshots/material-symbols-detail.png" alt="Search 图标的详情面板，包含导出按钮和生成的 Rust 代码"></picture> | ![搜索 “home” 的结果](docs/screenshots/material-symbols-search.png) |
 
 ## 安装
 

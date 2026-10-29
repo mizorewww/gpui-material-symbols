@@ -42,7 +42,7 @@ copy the matching Rust code. It follows the system's light or dark theme.
 
 | Icon details | Search |
 | --- | --- |
-| ![Details panel for the Search icon with export buttons and generated Rust code](docs/screenshots/material-symbols-detail.png) | ![Search results for "home"](docs/screenshots/material-symbols-search.png) |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/material-symbols-detail-dark.png"><img src="docs/screenshots/material-symbols-detail.png" alt="Details panel for the Search icon with export buttons and generated Rust code"></picture> | ![Search results for "home"](docs/screenshots/material-symbols-search.png) |
 
 ## Installation
 
