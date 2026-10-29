@@ -18,18 +18,19 @@ Pinned by `Cargo.lock`:
 | --- | --- |
 | `python3 scripts/sync_assets.py --verify` (also with `python3 -O`) | All ten SHA-256 values, matching font/SVG revisions, sorted in-bounds SVG index and coverage counts verified. Local only; no comparison against Google master |
 | `cargo fmt --all -- --check`, `git diff --check` | Passed |
-| `cargo test --locked --no-default-features` | 8 passed: 7 catalog, 1 raster comparison |
+| `cargo test --locked --no-default-features --features embed-assets` | 8 passed: 7 catalog, 1 raster comparison |
+| `cargo test --locked --no-default-features` | 1 passed: assets supplied at runtime |
 | `cargo test --locked --test integration` | 2 passed |
-| `cargo test --locked --doc` | 12 README examples passed (6 in `README.md`, 6 in `README.zh-CN.md`) |
+| `cargo test --locked --doc` | 12 README examples passed (6 in `README.md`, 6 in `README.zh-CN.md`); the two runtime-loading snippets are `ignore` |
 | `cargo check --locked --features showcase --example showcase` | Passed |
 | `cargo test --locked --no-default-features --features material-browser --example material_symbols` | 9 passed: 3 catalog, 2 export, 4 interaction |
 | `cargo clippy --locked --all-targets --all-features -- -D warnings` | Passed |
 | `cargo build --locked --features showcase --example showcase` | Passed, including native linking |
-| `material_symbols --capture` | Rendered through the Metal headless renderer; the five browser captures in `docs/screenshots/` were regenerated from this output. `showcase.png` was not recaptured for this record |
+| `material_symbols --capture` | Rendered through the Metal headless renderer; output byte-identical to the five browser captures in `docs/screenshots/`. `showcase.png` was not recaptured for this record |
 | `cargo metadata --locked` in a fresh clone without `../gpui-kit-material` | Resolved |
 | `cargo clippy --locked -p gpui-material-symbols-web --target wasm32-unknown-unknown -- -D warnings` | Passed |
-| `scripts/build-web.sh`, then `cf deploy --dry-run` and `npm run deploy` in `web/` (cf 1.0.0-beta.25, Wrangler 4.155.0) | 70.8 MB module, 16.5 MB as Brotli; deployed to <https://m3symbols.mizore.blog>, which returns the module as `application/wasm` with `Content-Encoding: br` |
-| Headless Chrome on macOS, locally through `wrangler dev` and on the live site | WebGPU initialized and the browser grid rendered; interaction in the web build was not tested |
+| `scripts/build-web.sh` | 18.0 MB module without embedded assets: 3.5 MB as Brotli. Fonts as Brotli: Outlined 4.1 MB, Rounded 5.5 MB, Sharp 3.6 MB; SVG pack 2.2 MB |
+| Headless Chrome on macOS through `cf dev` | WebGPU initialized and the Outlined grid rendered; the server saw one request each for the module, its JavaScript and the Outlined font (the preload was reused), and none for the other assets. Switching styles and interaction in the web build were not tested |
 
 Coverage: the union of 4,359 names; all 4,304 variable names × three styles ×
 four representative axis sets (51,648 SVG generations); all 27,720
