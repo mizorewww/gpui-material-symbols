@@ -28,6 +28,7 @@ const GRID_INSET: f32 = 24.;
 const GRADES: [f32; 3] = [-25., 0., 200.];
 const OPTICAL_SIZES: [f32; 4] = [20., 24., 40., 48.];
 const DEFAULT_COLOR: &str = "#1F1F1F";
+const SHEET: f32 = 360.;
 
 struct SymbolsSource;
 impl AssetSource for SymbolsSource {
@@ -706,7 +707,13 @@ impl Render for Browser {
             cx,
         );
         theme::apply_scale(1., window);
-        let width = f32::from(window.viewport_size().width);
+        // The details sheet sits beside the grid, so tiles never hide under it.
+        let sheet = if self.detail_open {
+            f32::from(rem(SHEET).to_pixels(window.rem_size()))
+        } else {
+            0.
+        };
+        let width = f32::from(window.viewport_size().width) - sheet;
         let columns = ((width - 2. * GRID_INSET + TILE_GAP) / (TILE + TILE_GAP))
             .floor()
             .max(1.) as usize;
@@ -739,14 +746,15 @@ impl Render for Browser {
                     .child(
                         div()
                             .size_full()
-                            .px(px(GRID_INSET))
+                            .pl(px(GRID_INSET))
+                            .pr(px(GRID_INSET + sheet))
                             .pb(rem(16.))
                             .child(grid),
                     )
                     .child(
                         MaterialSideSheet::new("details-sheet")
                             .open(self.detail_open)
-                            .width(rem(360.))
+                            .width(rem(SHEET))
                             .child(self.detail(cx)),
                     )
                     .when(!self.status.is_empty(), |body| {
