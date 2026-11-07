@@ -1,25 +1,127 @@
 name: CI
 on: [push, pull_request]
+# The workspace patches Kit to the sibling's vendored copy, so the workspace
+# jobs check out gpui-kit-material next to this repository. The `unpatched`
+# job builds the published library from outside the workspace, with no patch.
 jobs:
   core:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: gpui-material-symbols
+      - uses: actions/checkout@v4
+        with:
+          repository: mizorewww/gpui-kit-material
+          path: gpui-kit-material
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - run: python3 scripts/sync_assets.py --verify
-      - run: cargo fmt --all -- --check
-      - run: cargo test --locked --no-default-features --features embed-assets
-      - run: cargo test --locked --no-default-features
-  gpui-kit-main:
+      - working-directory: gpui-material-symbols
+        run: |
+          python3 scripts/sync_assets.py --verify
+          cargo fmt --all -- --check
+          cargo test --locked --no-default-features --features embed-assets
+          cargo test --locked --no-default-features
+          cargo test --locked --no-default-features --features outlined --lib
+  unpatched:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: gpui-material-symbols
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Consumer with crates.io gpui-kit 0.9 and no patches
+        run: |
+          mkdir -p consumer/src consumer/tests
+          cat > consumer/Cargo.toml <<'EOF'
+          [package]
+          name = "consumer"
+          version = "0.0.0"
+          edition = "2024"
+          publish = false
+
+          [features]
+          default = ["full"]
+          full = ["dep:full"]
+          outlined-only = ["dep:outlined"]
+
+          [dependencies]
+          full = { package = "gpui-material-symbols", path = "../gpui-material-symbols", optional = true }
+          outlined = { package = "gpui-material-symbols", path = "../gpui-material-symbols", default-features = false, features = ["outlined"], optional = true }
+
+          [workspace]
+          EOF
+          cat > consumer/src/lib.rs <<'EOF'
+          #[cfg(feature = "full")]
+          pub use full as symbols;
+          #[cfg(not(feature = "full"))]
+          pub use outlined as symbols;
+          EOF
+          cat > consumer/tests/load.rs <<'EOF'
+          use consumer::symbols::{Asset, Error, Style, Symbol};
+
+          #[test]
+          fn loads_icon_svgs() {
+              assert!(Symbol::HOME.icon().to_svg().unwrap().starts_with("<svg"));
+              #[cfg(feature = "full")]
+              {
+                  use consumer::symbols::{MaterialSymbols, kit::AssetSource};
+                  let path = Symbol::HOME.icon().style(Style::Sharp).asset_path();
+                  assert!(MaterialSymbols.load(&path).unwrap().unwrap().starts_with(b"<svg"));
+                  assert!(Symbol::APP_SPARK.icon().to_svg().is_ok());
+                  let _ = Symbol::HOME.icon().component();
+              }
+              #[cfg(not(feature = "full"))]
+              assert_eq!(
+                  Symbol::HOME.icon().style(Style::Rounded).to_svg(),
+                  Err(Error::NotLoaded(Asset::Font(Style::Rounded)))
+              );
+          }
+          EOF
+          cd consumer
+          cargo test
+          cargo test --no-default-features --features outlined-only
+          ! grep -q 'git+' Cargo.lock
+  package:
+    # Verifying the root builds gpui-kit, which needs desktop libraries on Linux.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: gpui-material-symbols
+      - uses: actions/checkout@v4
+        with:
+          repository: mizorewww/gpui-kit-material
+          path: gpui-kit-material
+      - uses: dtolnay/rust-toolchain@stable
+      - working-directory: gpui-material-symbols
+        run: |
+          # Packages and verifies all five together; the root resolves the
+          # data crates from the freshly packaged copies, published or not.
+          cargo package --workspace \
+            --exclude gpui-material-symbols-browser --exclude gpui-material-symbols-web
+          for f in $(find target/package -name "*.crate"); do
+            size=$(wc -c < "$f")
+            echo "$f: $size bytes"
+            test "$size" -lt 10000000
+          done
+  gpui-kit:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: gpui-material-symbols
+      - uses: actions/checkout@v4
+        with:
+          repository: mizorewww/gpui-kit-material
+          path: gpui-kit-material
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - run: cargo test --locked --test integration
-      - run: cargo check --locked --features showcase --example showcase
-      - run: cargo test --locked -p gpui-material-symbols-browser --bin material_symbols
-      - run: cargo clippy --locked --all-targets --all-features -- -D warnings
+      - working-directory: gpui-material-symbols
+        run: |
+          cargo test --locked --test integration
+          cargo check --locked --features showcase --example showcase
+          cargo test --locked -p gpui-material-symbols-browser --bin material_symbols
+          cargo clippy --locked --workspace --all-targets -- -D warnings

@@ -12,8 +12,6 @@ repository = "https://github.com/mizorewww/gpui-material-symbols"
 homepage = "https://github.com/mizorewww/gpui-material-symbols"
 documentation = "https://docs.rs/gpui-material-symbols"
 readme = "README.md"
-# Not yet: the Kit dependency is Git main.
-publish = false
 keywords = ["gpui", "material", "icons", "material-symbols", "svg"]
 categories = ["gui", "graphics"]
 include = [
@@ -55,7 +53,7 @@ showcase-capture = ["showcase", "gpui-kit/test-support"]
 [dependencies]
 ttf-parser = { version = "0.25", default-features = false, features = ["std", "variable-fonts"] }
 anyhow = { version = "1", optional = true }
-gpui-kit = { git = "https://github.com/longbridge/gpui-kit", branch = "main", optional = true }
+gpui-kit = { version = "0.9", optional = true }
 # The data crates hold exactly the files this version's catalog indexes.
 gpui-material-symbols-outlined = { version = "=0.1.0", path = "crates/gpui-material-symbols-outlined", optional = true }
 gpui-material-symbols-rounded = { version = "=0.1.0", path = "crates/gpui-material-symbols-rounded", optional = true }
@@ -104,7 +102,11 @@ gpui-material-symbols = { path = "." }
 gpui-kit = { path = "../gpui-kit-material/vendor/gpui-kit" }
 gpui-base = { path = "../gpui-kit-material/vendor/gpui-base" }
 
+# Workspace development only: the library itself builds against crates.io
+# `gpui-kit` 0.9 without any patch. The browser and web consumers share the
+# sibling's patched Kit, and both Kit sources must resolve to the same package.
 [patch.crates-io]
+gpui-kit = { path = "../gpui-kit-material/vendor/gpui-kit" }
 gpui-fast-macos = { path = "../gpui-kit-material/vendor/gpui-fast-macos" }
 gpui-pre-macos = { path = "../gpui-kit-material/vendor/gpui-pre-macos" }
 gpui-fast = { path = "../gpui-kit-material/vendor/gpui-fast" }

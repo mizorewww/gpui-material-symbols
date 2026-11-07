@@ -26,6 +26,10 @@ cargo run --features showcase --example showcase
 cargo run --no-default-features --features embed-assets --example export -- home rounded > home.svg
 ```
 
+库本身直接基于 crates.io 上的 `gpui-kit` 0.9 构建，不需要任何 patch。workspace 中的 patch
+只服务于浏览器和网页版：它们通过相邻的 `../gpui-kit-material` 共享其审核过的 Kit/GPUI 兼容修复，
+因此请同时更新两个仓库。
+
 图标浏览器也可以构建为网页版，见 [网页预览说明](docs/web.md)。
 
 ## 截图
@@ -67,7 +71,7 @@ Kit `Button` 中的三种风格、连续变化的填充轴，以及内嵌 SVG �
 ## 特性
 
 - **完整**：Google 可变字体名称与仅有 SVG 的名称的并集，固定到确切的上游提交并记录校验值。
-- **离线**：默认的 `embed-assets` feature 内嵌全部官方字体和 SVG，构建和运行时不联网、不注册系统字体。
+- **离线**：默认的 `embed-assets` feature 内嵌全部官方字体和 SVG，运行时不联网、不注册系统字体。
 - **严格校验**：越界的轴值和不支持的变体会返回错误，绝不悄悄换成近似图标。
 
 | 轴 | 取值 |
@@ -81,11 +85,40 @@ Kit `Button` 中的三种风格、连续变化的填充轴，以及内嵌 SVG �
 
 ```toml
 [dependencies]
-gpui-material-symbols = { git = "https://github.com/mizorewww/gpui-material-symbols" }
+gpui-material-symbols = "0.1"
 ```
 
-本库跟随 `longbridge/gpui-kit` 的 `main` 分支，并以 `gpui_material_symbols::kit` 重新导出同一个 Kit。
-使用这个导出可以保证类型一致，应用无需单独声明 GPUI。
+本库支持 crates.io 上的 [`gpui-kit`](https://crates.io/crates/gpui-kit) 0.9，并以
+`gpui_material_symbols::kit` 重新导出同一个 Kit。使用这个导出可以保证类型一致，应用无需单独声明 GPUI。
+如果应用对 `gpui-kit` 打了 patch（例如改用 Kit 的 Git `main`），请同时 patch crates.io 来源，
+让两者解析为同一个 Kit。
+
+### Features
+
+| Feature | 默认 | 作用 |
+| --- | --- | --- |
+| `gpui-kit` | 是 | `MaterialSymbols` 资源源、`IconNamed`、`Icon::component` / `embedded` / `svg` |
+| `embed-assets` | 是 | 启用 `outlined`、`rounded`、`sharp` 和 `supplemental` |
+| `outlined` | 随 `embed-assets` | 内嵌 Outlined 字体（10.7 MB） |
+| `rounded` | 随 `embed-assets` | 内嵌 Rounded 字体（15.2 MB） |
+| `sharp` | 随 `embed-assets` | 内嵌 Sharp 字体（8.9 MB） |
+| `supplemental` | 随 `embed-assets` | 内嵌 55 个仅有 SVG 的图标（16.1 MB） |
+| `gpui-fast` | 否 | 选用 Kit 的 `gpui-fast` 引擎 |
+
+字体和 SVG 包超出 crates.io 单个包的大小上限，因此各自放在无依赖的数据 crate 中：
+[`gpui-material-symbols-outlined`](https://crates.io/crates/gpui-material-symbols-outlined)、
+[`-rounded`](https://crates.io/crates/gpui-material-symbols-rounded)、
+[`-sharp`](https://crates.io/crates/gpui-material-symbols-sharp) 和
+[`-supplemental`](https://crates.io/crates/gpui-material-symbols-supplemental)。
+它们由上面的 feature 引入，无需直接依赖。目录始终包含全部风格和全部图标：对应 feature 未启用的资源会返回
+`Error::NotLoaded`，直到运行时提供（见下文）。
+
+例如只内嵌 Outlined 风格：
+
+```toml
+[dependencies]
+gpui-material-symbols = { version = "0.1", default-features = false, features = ["gpui-kit", "outlined"] }
+```
 
 ## 使用
 
@@ -176,7 +209,7 @@ assert_eq!(odd.to_svg(), Err(Error::UnsupportedVariant));
 
 ```toml
 [dependencies]
-gpui-material-symbols = { git = "https://github.com/mizorewww/gpui-material-symbols", default-features = false, features = ["embed-assets"] }
+gpui-material-symbols = { version = "0.1", default-features = false, features = ["embed-assets"] }
 ```
 
 ```rust
@@ -188,18 +221,21 @@ assert!(svg.starts_with("<svg"));
 
 ### 运行时加载字体
 
-默认的 `embed-assets` feature 会把约 50 MB 的字体和 SVG 编进二进制。不启用它（例如网页版）时，
-拿到文件后用 `Asset::provide` 逐个提供；在此之前 `to_svg` 返回 `Error::NotLoaded`：
+默认的 `embed-assets` feature 会把约 51 MB 的字体和 SVG 编进二进制。不启用它、或只启用部分资源
+feature（例如网页版）时，拿到文件后用 `Asset::provide` 逐个提供缺少的资源；在此之前 `to_svg` 返回
+`Error::NotLoaded`：
 
 ```rust,ignore
 use gpui_material_symbols::{Asset, Style};
 
-let font = Asset::Font(Style::Outlined);
-font.provide(downloaded_bytes)?; // 必须与 assets/MaterialSymbolsOutlined.ttf 完全一致
+let font = Asset::Font(Style::Rounded);
+assert!(!font.is_embedded()); // 未启用 `rounded` feature
+font.provide(downloaded_bytes)?; // 必须与 Google 的 MaterialSymbolsRounded.ttf 完全一致
 assert!(font.is_available());
 ```
 
-`Icon::required_asset` 给出某个图标需要的文件。[网页预览](docs/web.md)就是这样只下载当前显示的风格。
+`Icon::required_asset` 给出某个图标需要的文件，`Asset::file_name` 和 `Asset::size` 标识该文件，
+`Asset::feature` 给出能内嵌它的 feature。[网页预览](docs/web.md)就是这样只下载当前显示的风格。
 
 ## 帮助与贡献
 
@@ -208,7 +244,7 @@ assert!(font.is_available());
 其中包括验证命令、更新 Kit 与 Google 资源以及重新生成截图的方法。
 
 更多背景：[验证记录](docs/validation.md) · [调研记录](docs/research.md) · [图标浏览器说明](docs/MATERIAL_SYMBOLS.md) · [网页预览](docs/web.md)。
-图标数据固定在 `google/material-design-icons` 提交 `10ecc14`，来源与校验值见 [`assets/manifest.json`](assets/manifest.json)。
+图标数据固定在 `google/material-design-icons` 提交 `10ecc14`，来源、大小与校验值见 [`assets/manifest.json`](assets/manifest.json)。版本说明见[更新日志](CHANGELOG.md)。
 
 ## 许可
 

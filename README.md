@@ -29,8 +29,10 @@ cargo run --features showcase --example showcase
 cargo run --no-default-features --features embed-assets --example export -- home rounded > home.svg
 ```
 
-Workspace patches use the adjacent `../gpui-kit-material` checkout to share its
-audited Kit/GPUI compatibility fixes. Keep both repositories updated together.
+The library itself builds against `gpui-kit` 0.9 from crates.io with no
+patches. The workspace's patches only serve the browser and web consumers:
+they use the adjacent `../gpui-kit-material` checkout to share its audited
+Kit/GPUI compatibility fixes, so keep both repositories updated together.
 
 The browser also builds for the web; see the [web preview guide](docs/web.md).
 
@@ -77,8 +79,7 @@ SVG icon.
 - **Complete:** the full union of Google's variable-font names and SVG-only
   names, pinned to an exact upstream commit with recorded checksums.
 - **Offline:** with the default `embed-assets` feature, the official fonts and
-  SVGs are embedded; builds and apps never download anything or register
-  system fonts.
+  SVGs are embedded; apps never download anything or register system fonts.
 - **Validated:** out-of-range axes and unsupported variants are errors, never
   silently substituted icons.
 
@@ -93,12 +94,43 @@ SVG icon.
 
 ```toml
 [dependencies]
-gpui-material-symbols = { git = "https://github.com/mizorewww/gpui-material-symbols" }
+gpui-material-symbols = "0.1"
 ```
 
-The crate tracks the `main` branch of `longbridge/gpui-kit` and re-exports that
-exact Kit as `gpui_material_symbols::kit`. Using the re-export keeps the types
-consistent; you do not need to declare GPUI yourself.
+The crate supports [`gpui-kit`](https://crates.io/crates/gpui-kit) 0.9 from
+crates.io and re-exports that exact Kit as `gpui_material_symbols::kit`. Using
+the re-export keeps the types consistent; you do not need to declare GPUI
+yourself. If your application patches `gpui-kit` (for example to Kit's Git
+`main`), patch the crates.io source too so that both resolve to one Kit.
+
+### Features
+
+| Feature | Default | What it does |
+| --- | --- | --- |
+| `gpui-kit` | yes | `MaterialSymbols` asset source, `IconNamed`, `Icon::component` / `embedded` / `svg` |
+| `embed-assets` | yes | Enables `outlined`, `rounded`, `sharp` and `supplemental` |
+| `outlined` | via `embed-assets` | Embeds the Outlined font (10.7 MB) |
+| `rounded` | via `embed-assets` | Embeds the Rounded font (15.2 MB) |
+| `sharp` | via `embed-assets` | Embeds the Sharp font (8.9 MB) |
+| `supplemental` | via `embed-assets` | Embeds the SVGs of the 55 SVG-only symbols (16.1 MB) |
+| `gpui-fast` | no | Selects Kit's `gpui-fast` engine |
+
+The fonts and the SVG pack are too large for one crates.io package, so each
+lives in its own dependency-free data crate:
+[`gpui-material-symbols-outlined`](https://crates.io/crates/gpui-material-symbols-outlined),
+[`-rounded`](https://crates.io/crates/gpui-material-symbols-rounded),
+[`-sharp`](https://crates.io/crates/gpui-material-symbols-sharp) and
+[`-supplemental`](https://crates.io/crates/gpui-material-symbols-supplemental).
+The features above pull them in; you never depend on them directly. Every
+style and every symbol is always in the catalog: an asset whose feature is off
+returns `Error::NotLoaded` until you supply it at runtime (see below).
+
+For example, embed only the Outlined style:
+
+```toml
+[dependencies]
+gpui-material-symbols = { version = "0.1", default-features = false, features = ["gpui-kit", "outlined"] }
+```
 
 ## Usage
 
@@ -194,7 +226,7 @@ assert_eq!(odd.to_svg(), Err(Error::UnsupportedVariant));
 
 ```toml
 [dependencies]
-gpui-material-symbols = { git = "https://github.com/mizorewww/gpui-material-symbols", default-features = false, features = ["embed-assets"] }
+gpui-material-symbols = { version = "0.1", default-features = false, features = ["embed-assets"] }
 ```
 
 ```rust
@@ -206,20 +238,24 @@ assert!(svg.starts_with("<svg"));
 
 ### Load the fonts at runtime
 
-The default `embed-assets` feature builds about 50 MB of fonts and SVGs into
-the binary. Leave it out, for example on the web, and supply each `Asset`
-when you have its file; until then `to_svg` returns `Error::NotLoaded`:
+The default `embed-assets` feature builds about 51 MB of fonts and SVGs into
+the binary. Leave it out, or enable only some of the asset features, for
+example on the web, and supply each missing `Asset` when you have its file;
+until then `to_svg` returns `Error::NotLoaded`:
 
 ```rust,ignore
 use gpui_material_symbols::{Asset, Style};
 
-let font = Asset::Font(Style::Outlined);
-font.provide(downloaded_bytes)?; // exactly assets/MaterialSymbolsOutlined.ttf
+let font = Asset::Font(Style::Rounded);
+assert!(!font.is_embedded()); // the `rounded` feature is off
+font.provide(downloaded_bytes)?; // exactly MaterialSymbolsRounded.ttf from Google
 assert!(font.is_available());
 ```
 
-`Icon::required_asset` names the file an icon needs. The
-[web preview](docs/web.md) downloads only the styles it shows this way.
+`Icon::required_asset` names the file an icon needs, `Asset::file_name` and
+`Asset::size` identify it, and `Asset::feature` names the feature that would
+embed it. The [web preview](docs/web.md) downloads only the styles it shows
+this way.
 
 ## Help and contributing
 
@@ -234,7 +270,8 @@ More background: [validation record](docs/validation.md) ·
 [research notes](docs/research.md) · [icon browser](docs/MATERIAL_SYMBOLS.md) ·
 [web preview](docs/web.md).
 The icon data is pinned to `google/material-design-icons` commit `10ecc14`;
-sources and checksums are in [`assets/manifest.json`](assets/manifest.json).
+sources, sizes and checksums are in [`assets/manifest.json`](assets/manifest.json).
+Release notes are in the [changelog](CHANGELOG.md).
 
 ## License
 
