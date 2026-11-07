@@ -3,6 +3,11 @@
 All notable changes to `gpui-material-symbols` and its data crates are
 recorded here. The project follows [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+- `rust-version` 1.98, the oldest Rust that builds the library with `gpui-kit`
+  0.9 (its macOS backend calls `Option::map_or_default`).
+
 ## 0.1.0 — 2026-11-07
 
 First release on crates.io.

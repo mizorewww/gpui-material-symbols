@@ -6,6 +6,7 @@ default-members = ["."]
 name = "gpui-material-symbols"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.98"
 license = "Apache-2.0"
 description = "Complete variable Google Material Symbols as SVGs for Longbridge GPUI Kit"
 repository = "https://github.com/mizorewww/gpui-material-symbols"
