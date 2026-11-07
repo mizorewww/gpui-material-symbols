@@ -95,9 +95,6 @@ opt-level = 3
 [patch."https://github.com/mizorewww/gpui-kit-material"]
 gpui-kit-material = { path = "../gpui-kit-material/crates/material" }
 
-[patch."https://github.com/mizorewww/gpui-material-symbols"]
-gpui-material-symbols = { path = "." }
-
 [patch."https://github.com/longbridge/gpui-kit"]
 gpui-kit = { path = "../gpui-kit-material/vendor/gpui-kit" }
 gpui-base = { path = "../gpui-kit-material/vendor/gpui-base" }
@@ -106,6 +103,8 @@ gpui-base = { path = "../gpui-kit-material/vendor/gpui-base" }
 # `gpui-kit` 0.9 without any patch. The browser and web consumers share the
 # sibling's patched Kit, and both Kit sources must resolve to the same package.
 [patch.crates-io]
+# Material takes Symbols from crates.io; its consumers here use this checkout.
+gpui-material-symbols = { path = "." }
 gpui-kit = { path = "../gpui-kit-material/vendor/gpui-kit" }
 gpui-fast-macos = { path = "../gpui-kit-material/vendor/gpui-fast-macos" }
 gpui-pre-macos = { path = "../gpui-kit-material/vendor/gpui-pre-macos" }
