@@ -37,10 +37,32 @@ publish; the browser never substitutes a different variant.
 
 ## Components
 
-Every control comes from `gpui-kit-material`: the title bar and its caption
-buttons, search field, connected button groups (style, sort), switch, sliders,
-buttons, side sheet and snackbar. Behavior and accessibility come from GPUI
-Base.
+Every control comes from `gpui-kit-material`, started through Kit's
+`application`, `init` and `open_window` with Material's Component theme bridge:
+
+| Part | Component |
+| --- | --- |
+| App bar | `TitleBar` with `CaptionLabels`, `title_bar_control` |
+| Search | `SearchField` with an `IconButton` to clear it |
+| Style, sort | `ConnectedButtonGroup` |
+| Fill, weight, grade, optical size | `MaterialSwitch`, classic `MaterialSlider` (grade and optical size with stops and their values in the value indicator) |
+| Theme, compact controls, GitHub (web, compact) | `IconButton` (the controls button as a toggle) with a plain `MaterialTooltip` |
+| Toolbar edge | `MaterialDivider` |
+| Category headings | `list_subheader` |
+| Icon tiles | selectable `MaterialCard` (surface variant); the selected card shows the icon in the details sheet |
+| Details | standard `MaterialSideSheet` with its headline and close button |
+| Preview canvas, Rust code | `CardSurface` (outlined, on a fixed white canvas; filled) |
+| Name, code point, category | `ListItem` with an overline |
+| Export size, color | `IconButton`s, outlined `TextField` (in its error state while the color is not `#RRGGBB`) |
+| Export, Copy, Reset, GitHub | `material_button` with an icon |
+| Messages | `Snackbar`, placed and leaving with its exit motion |
+| Web downloads | indeterminate `LinearProgress` while a font or the SVG pack downloads |
+
+Control icons are Material Symbols in the Outlined style through Material's
+`Icon`, apart from the Rounded close icon Material's own sheet and snackbar
+draw; the grid's icons are drawn from the selected variant directly. Each
+tile is announced as one choice of the shown icons.
+Behavior and accessibility come from GPUI Base. Plain `div`s are layout only.
 
 ## Verification and captures
 
@@ -55,9 +77,11 @@ search states through GPUI's native headless renderer; on macOS this needs a
 Metal device. Headless captures show the window content only, without the
 system's traffic lights. Interaction tests dispatch real clicks and input:
 opening and closing details, choosing the A–Z sort, switching style and fill,
-toggling the theme, searching with no results and clearing the search. They
-also check that the open details sheet takes columns from the grid and that
-resizing keeps the scroll position; the kit tests its title bar and snackbar.
+toggling the theme, copying the Rust (clipboard and snackbar), searching with
+no results and clearing the search. They also check that the open details
+sheet takes columns from the grid, that resizing keeps the scroll position,
+and that the compact layout folds the controls behind the Tune button and
+covers the grid with the details; Material tests its components.
 Export tests decode the PNG and check its dimensions and pixel colors.
 
 ## Data

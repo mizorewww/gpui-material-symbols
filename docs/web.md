@@ -5,13 +5,16 @@ WebAssembly with GPUI's web platform. It is live at
 <https://m3symbols.mizore.blog>.
 
 The `web` crate includes `browser/src/main.rs` unchanged apart
-from four web paths: the icon fonts download at runtime (below), the app bar
+from five web paths: the icon fonts download at runtime (below), the app bar
 links the GitHub repository, exports download through the page instead of a
-save dialog, and the app registers IBM Plex Sans (SIL OFL, `web/fonts/`), GPUI
-Web's default UI font. It renders through WebGPU; GPUI Web can fall back to
+save dialog, the app registers IBM Plex Sans (SIL OFL, `web/fonts/`), GPUI
+Web's default UI font, and it serves the Rounded close glyph of Material's
+sheet and snackbar close buttons from `browser/src/assets/chrome/` until the
+Rounded font arrives (a test checks it against the font). It renders through WebGPU; GPUI Web can fall back to
 WebGL 2, which this site has not been tested with.
 
-The Web package disables default features on both Symbols and Material. This
+The Web package disables default features on both Symbols and Material,
+selecting only Material's `full` component set. This
 keeps Material's default `embedded-symbols` feature from embedding the complete
 font/SVG pack and bypassing the browser's on-demand asset loader. Build the Web
 package explicitly with `-p gpui-material-symbols-web` (as `scripts/build-web.sh`
@@ -59,7 +62,7 @@ module carries the code and catalog but no icon fonts. Sizes as Brotli:
 
 | File | Chunks | Downloaded |
 | --- | --- | --- |
-| Module (19.9 MB uncompressed) | 10 | 3.7 MB, at start |
+| Module (30.2 MB uncompressed) | 15 | 5.3 MB, at start |
 | Outlined font | 6 | 4.1 MB, at start, in parallel with the module |
 | Rounded font | 8 | 5.6 MB, when Rounded is first chosen |
 | Sharp font | 5 | 3.6 MB, when Sharp is first chosen |
@@ -70,7 +73,8 @@ with Brotli, and lists them in a manifest written into `main.js`. The page
 downloads the module and the Outlined font together, with a progress bar.
 The Rust browser asks the page for any other file when an icon first needs
 it (`Icon::required_asset`), hands the bytes to `Asset::provide`, which
-checks them, and redraws.
+checks them, and redraws; an indeterminate Material linear progress
+indicator under the toolbar shows while such a download lasts.
 
 ### Interrupted downloads
 

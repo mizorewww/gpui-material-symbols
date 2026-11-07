@@ -16,6 +16,11 @@ material_symbols` invocation is replaced by the package/bin command above.
 The native consumer and `../web` share `src/main.rs`; Web selects its own runtime
 asset-loading dependencies and does not enable this package's embedding feature.
 
+The browser is composed from `gpui-kit-material` components (the guide lists
+which component draws each part) and starts through Kit's `application`,
+`init` and `open_window`. Its own code lays those components out; it has no
+controls of its own.
+
 See [the browser guide](../docs/MATERIAL_SYMBOLS.md) and
 [maintenance](../docs/maintenance.md) for the shared catalog and validation entry
 points. The workspace root owns dependency patches; keep its Material, Symbols,
