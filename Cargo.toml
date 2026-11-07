@@ -1,5 +1,5 @@
 [workspace]
-members = ["browser", "web"]
+members = ["crates/*", "browser", "web"]
 default-members = ["."]
 
 [package]
@@ -9,16 +9,42 @@ edition = "2024"
 license = "Apache-2.0"
 description = "Complete variable Google Material Symbols as SVGs for Longbridge GPUI Kit"
 repository = "https://github.com/mizorewww/gpui-material-symbols"
+homepage = "https://github.com/mizorewww/gpui-material-symbols"
+documentation = "https://docs.rs/gpui-material-symbols"
 readme = "README.md"
-# Git dependencies and ~52 MB of embedded assets cannot be published to crates.io.
+# Not yet: the Kit dependency is Git main.
 publish = false
-exclude = [".research/", "docs/", "scripts/", ".github/"]
+keywords = ["gpui", "material", "icons", "material-symbols", "svg"]
+categories = ["gui", "graphics"]
+include = [
+    "/Cargo.toml",
+    "/build.rs",
+    "/src/",
+    "/tests/",
+    "/examples/",
+    "/assets/",
+    "/README.md",
+    "/README.zh-CN.md",
+    "/CHANGELOG.md",
+    "/LICENSE",
+    "/NOTICE",
+]
+
+[package.metadata.docs.rs]
+# docs.rs has no GPU or display; the default features document the whole API.
+all-features = false
+features = ["gpui-kit", "embed-assets"]
 
 [features]
 default = ["gpui-kit", "embed-assets"]
-# Build the fonts and SVG pack into the binary. Without it, supply them with
-# `Asset::provide` at runtime (the web build downloads them).
-embed-assets = []
+# Build every font and the SVG pack into the binary (about 51 MB).
+embed-assets = ["outlined", "rounded", "sharp", "supplemental"]
+# Build one asset in. Assets left out can be supplied with `Asset::provide` at
+# runtime (the web build downloads them).
+outlined = ["dep:gpui-material-symbols-outlined"]
+rounded = ["dep:gpui-material-symbols-rounded"]
+sharp = ["dep:gpui-material-symbols-sharp"]
+supplemental = ["dep:gpui-material-symbols-supplemental"]
 gpui-kit = ["dep:gpui-kit", "dep:anyhow"]
 showcase = ["gpui-kit"]
 # Select the same engine for core, platforms and all Kit presentation layers.
@@ -30,6 +56,11 @@ showcase-capture = ["showcase", "gpui-kit/test-support"]
 ttf-parser = { version = "0.25", default-features = false, features = ["std", "variable-fonts"] }
 anyhow = { version = "1", optional = true }
 gpui-kit = { git = "https://github.com/longbridge/gpui-kit", branch = "main", optional = true }
+# The data crates hold exactly the files this version's catalog indexes.
+gpui-material-symbols-outlined = { version = "=0.1.0", path = "crates/gpui-material-symbols-outlined", optional = true }
+gpui-material-symbols-rounded = { version = "=0.1.0", path = "crates/gpui-material-symbols-rounded", optional = true }
+gpui-material-symbols-sharp = { version = "=0.1.0", path = "crates/gpui-material-symbols-sharp", optional = true }
+gpui-material-symbols-supplemental = { version = "=0.1.0", path = "crates/gpui-material-symbols-supplemental", optional = true }
 
 [dev-dependencies]
 roxmltree = "0.21"

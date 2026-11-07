@@ -1,4 +1,4 @@
-assets/*.bin binary
-assets/*.ttf binary
+crates/*/*.bin binary
+crates/*/*.ttf binary
 assets/supplemental.tsv -diff
 *.png binary

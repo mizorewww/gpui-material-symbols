@@ -45,10 +45,13 @@ fn main() {
         output.push_str(&format!("({name:?}, {codepoints:?}),\n"));
     }
     output.push_str("];\n");
-    println!("cargo:rerun-if-changed=assets/supplemental.bin");
-    let pack_len = fs::metadata("assets/supplemental.bin")
-        .expect("read assets/supplemental.bin")
-        .len() as usize;
+    // The fonts and the SVG pack are in optional data crates, so their lengths
+    // come from the manifest (checked by scripts/sync_assets.py --verify and,
+    // for embedded files, by the tests).
+    println!("cargo:rerun-if-changed=assets/manifest.json");
+    let manifest = fs::read_to_string("assets/manifest.json").expect("read assets/manifest.json");
+    let size = |file: &str| recorded_size(&manifest, file);
+    let pack_len = size("supplemental.bin");
     output.push_str("pub(crate) static SUPPLEMENTAL: &[(&str, usize, usize)] = &[\n");
     let mut previous = "";
     for (number, line) in supplemental.lines().enumerate() {
@@ -85,12 +88,7 @@ fn main() {
         "MaterialSymbolsSharp.ttf",
         "supplemental.bin",
     ] {
-        let path = format!("assets/{file}");
-        println!("cargo:rerun-if-changed={path}");
-        let len = fs::metadata(&path)
-            .unwrap_or_else(|e| panic!("read {path}: {e}"))
-            .len();
-        output.push_str(&format!("({file:?}, {len}),\n"));
+        output.push_str(&format!("({file:?}, {}),\n", size(file)));
     }
     output.push_str("];\n");
     fs::write(
@@ -98,4 +96,25 @@ fn main() {
         output,
     )
     .unwrap();
+}
+
+/// The length `assets/manifest.json` records for `file` in its `"size"` object.
+fn recorded_size(manifest: &str, file: &str) -> usize {
+    let sizes = manifest
+        .split_once("\"size\"")
+        .and_then(|(_, rest)| rest.trim_start().strip_prefix(':'))
+        .and_then(|rest| rest.trim_start().strip_prefix('{'))
+        .and_then(|rest| rest.split_once('}'))
+        .expect("assets/manifest.json: no \"size\" object")
+        .0;
+    let value = sizes
+        .split_once(&format!("{file:?}"))
+        .and_then(|(_, rest)| rest.trim_start().strip_prefix(':'))
+        .unwrap_or_else(|| panic!("assets/manifest.json: no size for {file}"));
+    value
+        .trim_start()
+        .split(|c: char| !c.is_ascii_digit())
+        .next()
+        .and_then(|digits| digits.parse().ok())
+        .unwrap_or_else(|| panic!("assets/manifest.json: bad size for {file}"))
 }

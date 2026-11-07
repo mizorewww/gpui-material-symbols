@@ -20,5 +20,11 @@
     "supplemental_names": 55,
     "total_names": 4359,
     "supplemental_variants": 27720
+  },
+  "size": {
+    "MaterialSymbolsOutlined.ttf": 10744832,
+    "MaterialSymbolsRounded.ttf": 15235612,
+    "MaterialSymbolsSharp.ttf": 8918100,
+    "supplemental.bin": 16062753
   }
 }

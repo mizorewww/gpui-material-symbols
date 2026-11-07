@@ -57,8 +57,10 @@ npm run deploy   # scripts/build-web.sh, then cf deploy
 
 ## Loading
 
-The web crate builds `gpui-material-symbols` without `embed-assets`, so the
-module carries the code and catalog but no icon fonts. Sizes as Brotli:
+The web crate builds `gpui-material-symbols` without `embed-assets` or any
+of the per-asset features, so the module carries the code and catalog but no
+icon fonts. `scripts/build-web.sh` reads the files from their data crates in
+`crates/`. Sizes as Brotli:
 
 | File | Chunks | Downloaded |
 | --- | --- | --- |

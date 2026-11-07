@@ -54,13 +54,14 @@ for path, sha in sorted(entries):
 process.stdin.close()
 if process.wait():
     fail('git cat-file --batch failed')
-for name, data in {
-    'supplemental.bin': bytes(pack),
-    'supplemental.tsv': ''.join(index).encode(),
-    'svg-names.txt': ('\n'.join(sorted(svg_names))+'\n').encode(),
+for target, data in {
+    root / 'crates/gpui-material-symbols-supplemental/supplemental.bin': bytes(pack),
+    root / 'assets/supplemental.tsv': ''.join(index).encode(),
+    root / 'assets/svg-names.txt': ('\n'.join(sorted(svg_names))+'\n').encode(),
 }.items():
-    write_atomic(root / 'assets' / name, data)
-    manifest['sha256'][name] = hashlib.sha256(data).hexdigest()
+    write_atomic(target, data)
+    manifest['sha256'][target.name] = hashlib.sha256(data).hexdigest()
+manifest.setdefault('size', {})['supplemental.bin'] = len(pack)
 manifest['supplemental_revision'] = revision
 manifest['coverage'] = {'font_names': len(font_names), 'svg_names': len(svg_names), 'supplemental_names': len(missing), 'total_names': len(font_names | svg_names), 'supplemental_variants': len(entries)}
 write_atomic(root / 'assets/manifest.json', (json.dumps(manifest, indent=2)+'\n').encode())

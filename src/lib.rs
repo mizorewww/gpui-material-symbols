@@ -5,9 +5,11 @@
 //! style and continuous variation axes. With the default `gpui-kit` feature,
 //! [`MaterialSymbols`] serves SVGs to GPUI and [`Icon::component`] integrates with Longbridge GPUI Kit.
 //!
-//! The default `embed-assets` feature builds the fonts and SVG pack into the
-//! binary. Without it, supply each [`Asset`] at runtime with [`Asset::provide`],
-//! for example from a web build that downloads only the styles it shows.
+//! The fonts and the SVG pack come from four data crates, one per [`Asset`],
+//! behind the `outlined`, `rounded`, `sharp` and `supplemental` features; the
+//! default `embed-assets` feature enables all four. Supply any asset that is
+//! not embedded at runtime with [`Asset::provide`], for example from a web
+//! build that downloads only the styles it shows.
 
 use std::{fmt, fmt::Write, str::FromStr, sync::OnceLock};
 use ttf_parser::{Face, OutlineBuilder, Tag};
@@ -141,18 +143,21 @@ impl Style {
         }
     }
     /// Complete embedded official variable font; never fetched at runtime.
-    /// Only with `embed-assets`; otherwise see [`Asset`].
+    /// Only with `embed-assets`; otherwise see [`Asset::bytes`].
     #[cfg(feature = "embed-assets")]
     pub fn font_bytes(self) -> &'static [u8] {
-        Asset::Font(self).embedded()
+        Asset::Font(self)
+            .embedded()
+            .expect("embed-assets embeds every font")
     }
 }
 
 /// A data file behind the symbols: each style's official variable font, and
 /// the pack of Google's SVGs for the SVG-only symbols.
 ///
-/// With the default `embed-assets` feature every asset is built in. Without
-/// it, nothing is: [`Icon::to_svg`] returns [`Error::NotLoaded`] until the
+/// Each asset is built in when its feature ([`Asset::feature`]) is enabled;
+/// the default `embed-assets` feature enables all four. For an asset that is
+/// not embedded, [`Icon::to_svg`] returns [`Error::NotLoaded`] until the
 /// icon's [`Icon::required_asset`] is supplied with [`Asset::provide`].
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Asset {
@@ -181,7 +186,7 @@ impl Asset {
             Self::Supplemental => 3,
         }
     }
-    /// The file's name in this crate's `assets/` directory.
+    /// The file's name, as in Google's distribution and its data crate.
     pub fn file_name(self) -> &'static str {
         ASSET_FILES[self.index()].0
     }
@@ -189,28 +194,53 @@ impl Asset {
     pub fn size(self) -> usize {
         ASSET_FILES[self.index()].1
     }
-    #[cfg(feature = "embed-assets")]
-    fn embedded(self) -> &'static [u8] {
+    /// The Cargo feature that embeds this asset: `outlined`, `rounded`,
+    /// `sharp` or `supplemental`.
+    pub fn feature(self) -> &'static str {
         match self {
-            Self::Font(Style::Outlined) => include_bytes!("../assets/MaterialSymbolsOutlined.ttf"),
-            Self::Font(Style::Rounded) => include_bytes!("../assets/MaterialSymbolsRounded.ttf"),
-            Self::Font(Style::Sharp) => include_bytes!("../assets/MaterialSymbolsSharp.ttf"),
-            Self::Supplemental => include_bytes!("../assets/supplemental.bin"),
+            Self::Font(style) => style.name(),
+            Self::Supplemental => "supplemental",
+        }
+    }
+    /// The data crate that holds the file, `gpui-material-symbols-` and
+    /// [`Asset::feature`].
+    pub fn crate_name(self) -> &'static str {
+        match self {
+            Self::Font(Style::Outlined) => "gpui-material-symbols-outlined",
+            Self::Font(Style::Rounded) => "gpui-material-symbols-rounded",
+            Self::Font(Style::Sharp) => "gpui-material-symbols-sharp",
+            Self::Supplemental => "gpui-material-symbols-supplemental",
+        }
+    }
+    /// Whether this asset's feature built it into the binary.
+    pub fn is_embedded(self) -> bool {
+        self.embedded().is_some()
+    }
+    fn embedded(self) -> Option<&'static [u8]> {
+        match self {
+            #[cfg(feature = "outlined")]
+            Self::Font(Style::Outlined) => Some(gpui_material_symbols_outlined::BYTES),
+            #[cfg(feature = "rounded")]
+            Self::Font(Style::Rounded) => Some(gpui_material_symbols_rounded::BYTES),
+            #[cfg(feature = "sharp")]
+            Self::Font(Style::Sharp) => Some(gpui_material_symbols_sharp::BYTES),
+            #[cfg(feature = "supplemental")]
+            Self::Supplemental => Some(gpui_material_symbols_supplemental::BYTES),
+            #[allow(unreachable_patterns)]
+            _ => None,
         }
     }
     /// The asset's bytes, if they are embedded or have been provided.
     pub fn bytes(self) -> Option<&'static [u8]> {
-        #[cfg(feature = "embed-assets")]
-        return Some(self.embedded());
-        #[cfg(not(feature = "embed-assets"))]
-        PROVIDED[self.index()].get().copied()
+        self.embedded()
+            .or_else(|| PROVIDED[self.index()].get().copied())
     }
     /// Whether icons that need this asset can be drawn.
     pub fn is_available(self) -> bool {
         self.bytes().is_some()
     }
-    /// Supply the asset's file, exactly as in this crate's `assets/`
-    /// directory. Fonts must parse with all four variation axes, and every
+    /// Supply the asset's file, exactly as in its data crate
+    /// ([`Asset::crate_name`]) and Google's distribution. Fonts must parse with all four variation axes, and every
     /// file must have its recorded length; this guards against the wrong
     /// file, not tampering, so load assets from a source you trust. The bytes are kept for the rest of
     /// the program. Providing an asset that is already available is a no-op.
@@ -505,7 +535,8 @@ pub enum Error {
     InvalidFont,
     /// The selected codepoint has no drawable outline.
     MissingGlyph,
-    /// The asset has not been provided; see [`Asset::provide`].
+    /// The asset is neither embedded (see [`Asset::feature`]) nor provided
+    /// with [`Asset::provide`].
     NotLoaded(Asset),
     /// Bytes given to [`Asset::provide`] are not that asset.
     InvalidAsset(Asset),
@@ -520,7 +551,12 @@ impl fmt::Display for Error {
             Self::InvalidFont => f.write_str("invalid Material Symbols font"),
             Self::MissingGlyph => f.write_str("Material Symbol has no drawable glyph"),
             Self::NotLoaded(asset) => {
-                write!(f, "Material Symbols asset {} has not been provided", asset.file_name())
+                write!(
+                    f,
+                    "Material Symbols asset {} is not loaded: enable the `{}` feature to embed it, or supply it with Asset::provide",
+                    asset.file_name(),
+                    asset.feature()
+                )
             }
             Self::InvalidAsset(asset) => {
                 write!(f, "these bytes are not the Material Symbols asset {}", asset.file_name())
@@ -530,28 +566,42 @@ impl fmt::Display for Error {
 }
 impl std::error::Error for Error {}
 
-#[cfg(all(test, not(feature = "embed-assets")))]
+#[cfg(all(
+    test,
+    not(any(
+        feature = "outlined",
+        feature = "rounded",
+        feature = "sharp",
+        feature = "supplemental"
+    ))
+))]
 mod tests {
     use super::*;
 
+    /// The file in its data crate, next to this one in the repository.
     fn file(asset: Asset) -> Vec<u8> {
-        std::fs::read(format!(
-            "{}/assets/{}",
-            env!("CARGO_MANIFEST_DIR"),
-            asset.file_name()
-        ))
-        .unwrap()
+        std::fs::read(repository_file(asset).unwrap()).unwrap()
     }
 
     #[test]
     fn assets_supplied_at_runtime_draw_their_icons() {
+        if Asset::ALL.into_iter().any(|a| repository_file(a).is_none()) {
+            eprintln!("skipped: the data crates are not next to this one (published source)");
+            return;
+        }
         let rounded = Symbol::HOME.icon().style(Style::Rounded);
         let spark = Symbol::APP_SPARK.icon();
         let font = Asset::Font(Style::Rounded);
         assert_eq!(rounded.required_asset(), font);
         assert_eq!(spark.required_asset(), Asset::Supplemental);
         assert!(!font.is_available());
+        assert!(Asset::ALL.into_iter().all(|asset| !asset.is_embedded()));
         assert_eq!(rounded.to_svg(), Err(Error::NotLoaded(font)));
+        assert!(
+            Error::NotLoaded(font)
+                .to_string()
+                .contains("enable the `rounded` feature")
+        );
         assert_eq!(spark.to_svg(), Err(Error::NotLoaded(Asset::Supplemental)));
 
         // Another style's font, or a truncated file, is refused.
@@ -574,4 +624,58 @@ mod tests {
         assert!(!Asset::Font(Style::Outlined).is_available());
         assert!(font.provide(file(font)).is_ok());
     }
+}
+
+/// One style embedded, the rest supplied at runtime.
+#[cfg(all(test, feature = "outlined", not(feature = "rounded")))]
+mod partial_tests {
+    use super::*;
+
+    #[test]
+    fn styles_without_their_feature_fall_back_to_provided_assets() {
+        let outlined = Asset::Font(Style::Outlined);
+        let rounded = Asset::Font(Style::Rounded);
+        assert!(outlined.is_embedded() && outlined.is_available());
+        assert!(Symbol::HOME.icon().to_svg().unwrap().starts_with("<svg"));
+        assert!(!rounded.is_embedded());
+        let icon = Symbol::HOME.icon().style(Style::Rounded);
+        assert_eq!(icon.to_svg(), Err(Error::NotLoaded(rounded)));
+        // Providing an embedded asset is a no-op that still checks the bytes.
+        assert_eq!(
+            outlined.provide(vec![0; 4]),
+            Err(Error::InvalidAsset(outlined))
+        );
+        outlined
+            .provide(outlined.bytes().unwrap().to_vec())
+            .unwrap();
+        let Some(path) = repository_file(rounded) else {
+            eprintln!("skipped: the data crates are not next to this one (published source)");
+            return;
+        };
+        rounded.provide(std::fs::read(path).unwrap()).unwrap();
+        assert!(icon.to_svg().unwrap().starts_with("<svg"));
+        assert!(!rounded.is_embedded());
+    }
+}
+
+/// An asset's file in its data crate, when this crate is built from the
+/// repository rather than its published source. Used by the tests above.
+#[cfg(all(
+    test,
+    any(
+        all(feature = "outlined", not(feature = "rounded")),
+        not(any(
+            feature = "outlined",
+            feature = "rounded",
+            feature = "sharp",
+            feature = "supplemental"
+        ))
+    )
+))]
+fn repository_file(asset: Asset) -> Option<std::path::PathBuf> {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("crates")
+        .join(asset.crate_name())
+        .join(asset.file_name());
+    path.is_file().then_some(path)
 }

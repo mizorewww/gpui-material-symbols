@@ -1,4 +1,4 @@
-use gpui_material_symbols::{Axes, Error, Icon, Style, Symbol};
+use gpui_material_symbols::{Asset, Axes, Error, Icon, Style, Symbol};
 use ttf_parser::Face;
 
 #[test]
@@ -32,6 +32,15 @@ fn catalog_exactly_matches_every_upstream_manifest() {
     }
     assert_eq!(Symbol::named("home"), Some(Symbol::HOME));
     assert_eq!(Symbol::named("not_a_real_symbol"), None);
+}
+
+#[test]
+fn embedded_assets_have_their_recorded_lengths() {
+    for asset in Asset::ALL {
+        assert!(asset.is_embedded(), "{asset:?}");
+        assert_eq!(asset.bytes().unwrap().len(), asset.size(), "{asset:?}");
+        assert!(asset.crate_name().ends_with(asset.feature()));
+    }
 }
 
 #[test]

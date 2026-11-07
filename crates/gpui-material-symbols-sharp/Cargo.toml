@@ -1,0 +1,13 @@
+[package]
+name = "gpui-material-symbols-sharp"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "Apache-2.0"
+description = "The Sharp Google Material Symbols variable font, as bytes for gpui-material-symbols"
+repository = "https://github.com/mizorewww/gpui-material-symbols"
+homepage = "https://github.com/mizorewww/gpui-material-symbols"
+readme = "README.md"
+keywords = ["material", "icons", "symbols", "font", "gpui"]
+categories = ["gui", "graphics"]
+include = ["/Cargo.toml", "/src/lib.rs", "/MaterialSymbolsSharp.ttf", "/LICENSE", "/README.md"]

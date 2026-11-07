@@ -2617,6 +2617,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "gpui-kit",
+ "gpui-material-symbols-outlined",
+ "gpui-material-symbols-rounded",
+ "gpui-material-symbols-sharp",
+ "gpui-material-symbols-supplemental",
  "resvg 0.46.0",
  "roxmltree 0.21.2",
  "ttf-parser",
@@ -2633,6 +2637,22 @@ dependencies = [
  "resvg 0.46.0",
  "tiny-skia",
 ]
+
+[[package]]
+name = "gpui-material-symbols-outlined"
+version = "0.1.0"
+
+[[package]]
+name = "gpui-material-symbols-rounded"
+version = "0.1.0"
+
+[[package]]
+name = "gpui-material-symbols-sharp"
+version = "0.1.0"
+
+[[package]]
+name = "gpui-material-symbols-supplemental"
+version = "0.1.0"
 
 [[package]]
 name = "gpui-material-symbols-web"

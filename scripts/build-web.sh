@@ -52,10 +52,15 @@ js_name = f"{js.stem}.{hashlib.sha256(js.read_bytes()).hexdigest()[:12]}.js"
 shutil.copy(js, dist / "m" / js_name)
 manifest = {
     "module": chunked(bindgen / "gpui_material_symbols_web_bg.wasm"),
+    # Each file lives in its data crate; the web build embeds none of them.
     "assets": {
-        name: chunked(pathlib.Path("assets") / name)
-        for name in ["MaterialSymbolsOutlined.ttf", "MaterialSymbolsRounded.ttf",
-                     "MaterialSymbolsSharp.ttf", "supplemental.bin"]
+        name: chunked(pathlib.Path("crates") / crate / name)
+        for name, crate in [
+            ("MaterialSymbolsOutlined.ttf", "gpui-material-symbols-outlined"),
+            ("MaterialSymbolsRounded.ttf", "gpui-material-symbols-rounded"),
+            ("MaterialSymbolsSharp.ttf", "gpui-material-symbols-sharp"),
+            ("supplemental.bin", "gpui-material-symbols-supplemental"),
+        ]
     },
 }
 for page in ["index.html", "main.js"]:

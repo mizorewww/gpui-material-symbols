@@ -10,10 +10,24 @@ from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / 'assets'
+# The large files live in their own data crates (crates.io limits each package
+# to 10 MB compressed); everything else stays in the main crate's assets/.
+CRATES = {
+    'MaterialSymbolsOutlined.ttf': 'gpui-material-symbols-outlined',
+    'MaterialSymbolsRounded.ttf': 'gpui-material-symbols-rounded',
+    'MaterialSymbolsSharp.ttf': 'gpui-material-symbols-sharp',
+    'supplemental.bin': 'gpui-material-symbols-supplemental',
+}
 DEFAULT_REVISION = '10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7'
 STYLES = ('Outlined', 'Rounded', 'Sharp')
 FONT_FILES = [f'MaterialSymbols{s}.{e}' for s in STYLES for e in ('ttf', 'codepoints')] + ['LICENSE']
 SUPPLEMENTAL_FILES = ['supplemental.bin', 'supplemental.tsv', 'svg-names.txt']
+
+
+def location(name):
+    """Where a recorded upstream file lives in this repository."""
+    crate = CRATES.get(name)
+    return ROOT / 'crates' / crate / name if crate else ASSETS / name
 
 
 def fail(message):
@@ -37,16 +51,28 @@ def verify(manifest):
     if manifest.get('supplemental_revision') != manifest.get('revision'):
         fail('supplemental SVGs were extracted from a different revision than the fonts')
     for name, digest in manifest['sha256'].items():
-        if hashlib.sha256((ASSETS / name).read_bytes()).hexdigest() != digest:
+        if hashlib.sha256(location(name).read_bytes()).hexdigest() != digest:
             fail(f'{name} does not match its recorded SHA-256')
+    # build.rs reads these lengths; the data crates are optional dependencies.
+    sizes = {name: location(name).stat().st_size for name in CRATES}
+    if manifest.get('size') != sizes:
+        fail(f'recorded sizes {manifest.get("size")} differ from the files {sizes}')
+    for name, crate in CRATES.items():
+        if (ROOT / 'crates' / crate / 'LICENSE').read_bytes() != (ASSETS / 'LICENSE').read_bytes():
+            fail(f'crates/{crate}/LICENSE differs from assets/LICENSE')
+        # The published README states the file's provenance; keep it current.
+        readme = (ROOT / 'crates' / crate / 'README.md').read_text()
+        for fact in (manifest['revision'], manifest['sha256'][name], str(sizes[name])):
+            if fact not in readme:
+                fail(f'crates/{crate}/README.md does not state {fact}; update it')
 
     font_names = names(ASSETS / 'MaterialSymbolsOutlined.codepoints')
     for style in STYLES[1:]:
         if names(ASSETS / f'MaterialSymbols{style}.codepoints') != font_names:
             fail(f'{style} codepoints name a different symbol set than Outlined')
     svg_names = set((ASSETS / 'svg-names.txt').read_text().split())
-    pack_len = (ASSETS / 'supplemental.bin').stat().st_size
-    pack = (ASSETS / 'supplemental.bin').read_bytes()
+    pack = location('supplemental.bin').read_bytes()
+    pack_len = len(pack)
     previous, variants, supplemental_names = '', 0, set()
     for number, line in enumerate((ASSETS / 'supplemental.tsv').read_text().splitlines(), 1):
         path, offset, length = line.split('\t')
@@ -106,10 +132,14 @@ def main():
         if name.endswith('.codepoints') and len(data.splitlines()) <= 2500:
             fail(f'{name} is implausibly short')
     for name, data in files.items():
-        write_atomic(ASSETS / name, data)
+        write_atomic(location(name), data)
+    for crate in CRATES.values():
+        write_atomic(ROOT / 'crates' / crate / 'LICENSE', files['LICENSE'])
     sha256 = manifest.get('sha256', {})
     sha256.update({n: hashlib.sha256(d).hexdigest() for n, d in files.items()})
-    manifest.update(repository='https://github.com/google/material-design-icons', revision=args.revision, sha256=sha256)
+    size = manifest.get('size', {})
+    size.update({n: len(d) for n, d in files.items() if n in CRATES})
+    manifest.update(repository='https://github.com/google/material-design-icons', revision=args.revision, sha256=sha256, size=size)
     write_atomic(manifest_path, (json.dumps(manifest, indent=2) + '\n').encode())
     if manifest.get('supplemental_revision') != args.revision:
         print('Fonts updated; now run sync_supplemental.py for the same revision.')
