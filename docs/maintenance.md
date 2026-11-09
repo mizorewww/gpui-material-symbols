@@ -15,9 +15,9 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-The workspace patches `gpui-kit` to the sibling's vendored copy for the
-browser and web consumers. The published library must also build without
-them; [ci.yml](ci.yml)'s `unpatched` job checks that from a consumer crate
+The workspace patches `gpui-kit` to gpui-kit-material's vendored copy (a
+pinned Git revision) for the browser and web consumers. The published library
+must also build without it; [ci.yml](ci.yml)'s `unpatched` job checks that from a consumer crate
 outside the workspace, as in [Publishing](#publishing).
 
 The catalog tests check the complete name union, all three fonts' axes, four
@@ -28,10 +28,15 @@ and asset-source composition. Record actual results in
 
 ## Updating Longbridge GPUI Kit
 
-The library depends on `gpui-kit` 0.9 from crates.io. In this workspace both
-that and the consumers' Git `main` dependency are patched to
-`../gpui-kit-material/vendor/gpui-kit`, so they resolve to one Kit; the
-vendored copy must keep a 0.9 version for the crates.io patch to apply. A new
+The library depends on `gpui-kit` 0.9 from crates.io; the browser and web
+consumers depend on crates.io `gpui-kit` 0.9.1 and `gpui-kit-material` 0.1. In
+this workspace crates.io `gpui-kit` is patched to `vendor/gpui-kit` of
+gpui-kit-material at a pinned revision: the same published source with a
+manifest that keeps WebAssembly single-threaded, so `scripts/build-web.sh`
+builds on stable. Move that revision together with the Kit version; the
+vendored copy must keep the version crates.io resolves for the patch to apply.
+Drop the patch once published Kit builds its web platform single-threaded by
+default. A new
 Kit minor release (0.10) is a breaking dependency change and needs a new
 minor release of this crate.
 

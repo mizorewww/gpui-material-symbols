@@ -12,7 +12,6 @@ Material Symbols：4,359 个图标名称，Outlined / Rounded / Sharp 三种风�
 ## 运行示例
 
 ```sh
-git clone https://github.com/mizorewww/gpui-kit-material
 git clone https://github.com/mizorewww/gpui-material-symbols
 cd gpui-material-symbols
 
@@ -26,9 +25,10 @@ cargo run --features showcase --example showcase
 cargo run --no-default-features --features embed-assets --example export -- home rounded > home.svg
 ```
 
-库本身直接基于 crates.io 上的 `gpui-kit` 0.9 构建，不需要任何 patch。workspace 中的 patch
-只服务于浏览器和网页版：它们通过相邻的 `../gpui-kit-material` 共享其审核过的 Kit/GPUI 兼容修复，
-因此请同时更新两个仓库。
+库本身直接基于 crates.io 上的 `gpui-kit` 0.9 构建，不需要任何 patch。浏览器和网页版使用 crates.io
+上的 `gpui-kit-material` 0.1 和 `gpui-kit` 0.9.1。workspace 只把 Symbols patch 到本仓库，并把 `gpui-kit`
+patch 到 gpui-kit-material 在固定修订中 vendored 的同一 0.9.1 源码：其 manifest 让 WebAssembly 保持单线程，
+而发布版 Kit 以多线程构建 Web 平台，需要 nightly 工具链。
 
 图标浏览器也可以构建为网页版，见 [网页预览说明](docs/web.md)。
 
@@ -250,5 +250,3 @@ assert!(font.is_available());
 
 Apache-2.0，见 [LICENSE](LICENSE)。Google 的图标资源同为 Apache-2.0（[`assets/LICENSE`](assets/LICENSE)）；
 示例使用的第三方资源见 [NOTICE](NOTICE)。本项目与 Google 无关联，也未获其背书。
-
-工作区补丁使用相邻的 `../gpui-kit-material` 仓库以统一 Kit/GPUI 兼容修复；请同步更新两个仓库。

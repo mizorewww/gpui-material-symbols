@@ -1,8 +1,8 @@
 name: CI
 on: [push, pull_request]
-# The workspace patches Kit to the sibling's vendored copy, so the workspace
-# jobs check out gpui-kit-material next to this repository. The `unpatched`
-# job builds the published library from outside the workspace, with no patch.
+# The workspace patches crates.io Kit to gpui-kit-material's vendored copy at
+# a pinned Git revision (single-threaded WASM). The `unpatched` job builds the
+# published library from outside the workspace, with no patch.
 jobs:
   core:
     runs-on: ubuntu-latest
@@ -10,10 +10,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: gpui-material-symbols
-      - uses: actions/checkout@v4
-        with:
-          repository: mizorewww/gpui-kit-material
-          path: gpui-kit-material
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
@@ -90,10 +86,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: gpui-material-symbols
-      - uses: actions/checkout@v4
-        with:
-          repository: mizorewww/gpui-kit-material
-          path: gpui-kit-material
       - uses: dtolnay/rust-toolchain@stable
       - working-directory: gpui-material-symbols
         run: |
@@ -112,10 +104,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: gpui-material-symbols
-      - uses: actions/checkout@v4
-        with:
-          repository: mizorewww/gpui-kit-material
-          path: gpui-kit-material
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy

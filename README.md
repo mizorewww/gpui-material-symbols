@@ -15,7 +15,6 @@ standard icon slot.
 ## Run the examples
 
 ```sh
-git clone https://github.com/mizorewww/gpui-kit-material
 git clone https://github.com/mizorewww/gpui-material-symbols
 cd gpui-material-symbols
 
@@ -30,9 +29,11 @@ cargo run --no-default-features --features embed-assets --example export -- home
 ```
 
 The library itself builds against `gpui-kit` 0.9 from crates.io with no
-patches. The workspace's patches only serve the browser and web consumers:
-they use the adjacent `../gpui-kit-material` checkout to share its audited
-Kit/GPUI compatibility fixes, so keep both repositories updated together.
+patches. The browser and web consumers take `gpui-kit-material` 0.1 and
+`gpui-kit` 0.9.1 from crates.io. The workspace patches Symbols to this checkout,
+and `gpui-kit` to gpui-kit-material's vendored copy of the same 0.9.1 source at
+a pinned revision, whose manifest keeps WebAssembly single-threaded: published
+Kit builds its web platform multithreaded, which needs a nightly toolchain.
 
 The browser also builds for the web; see the [web preview guide](docs/web.md).
 

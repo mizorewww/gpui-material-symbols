@@ -91,28 +91,14 @@ required-features = ["showcase"]
 [profile.dev.package.gpui-pre]
 opt-level = 3
 
-# The Material consumer shares its sibling's audited Kit/GPUI compatibility
-# patches. Keep the two repositories adjacent for workspace development.
-[patch."https://github.com/mizorewww/gpui-kit-material"]
-gpui-kit-material = { path = "../gpui-kit-material/crates/material" }
-
-[patch."https://github.com/longbridge/gpui-kit"]
-gpui-kit = { path = "../gpui-kit-material/vendor/gpui-kit" }
-gpui-base = { path = "../gpui-kit-material/vendor/gpui-base" }
-
 # Workspace development only: the library itself builds against crates.io
-# `gpui-kit` 0.9 without any patch. The browser and web consumers share the
-# sibling's patched Kit, and both Kit sources must resolve to the same package.
+# `gpui-kit` 0.9 without any patch, and the browser and web consumers take
+# crates.io `gpui-kit-material` 0.1 on `gpui-kit` 0.9.1.
 [patch.crates-io]
 # Material takes Symbols from crates.io; its consumers here use this checkout.
 gpui-material-symbols = { path = "." }
-gpui-kit = { path = "../gpui-kit-material/vendor/gpui-kit" }
-gpui-fast-macos = { path = "../gpui-kit-material/vendor/gpui-fast-macos" }
-gpui-pre-macos = { path = "../gpui-kit-material/vendor/gpui-pre-macos" }
-gpui-fast = { path = "../gpui-kit-material/vendor/gpui-fast" }
-gpui-fast-web = { path = "../gpui-kit-material/vendor/gpui-fast-web" }
-gpui-fast-apple = { path = "../gpui-kit-material/vendor/gpui-fast-apple" }
-gpui-base = { path = "../gpui-kit-material/vendor/gpui-base" }
-gpui-pre = { path = "../gpui-kit-material/vendor/gpui-pre" }
-gpui-pre-web = { path = "../gpui-kit-material/vendor/gpui-pre-web" }
-gpui-pre-apple = { path = "../gpui-kit-material/vendor/gpui-pre-apple" }
+# Published Kit 0.9.1 builds its Web platforms multithreaded, which needs a
+# nightly toolchain and cross-origin isolation. gpui-kit-material's vendored Kit
+# is the same 0.9.1 source with a manifest that keeps WASM single-threaded, so
+# the web consumer builds on stable (gpui-kit-material docs/RELEASING.md).
+gpui-kit = { git = "https://github.com/mizorewww/gpui-kit-material", rev = "98c72b8d183418631b3dcf91064fcece6a96350f" }
