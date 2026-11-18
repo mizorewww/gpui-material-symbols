@@ -43,4 +43,4 @@ gpui-material-symbols = { path = ".." }
 # nightly toolchain and cross-origin isolation. gpui-kit-material's vendored Kit
 # is the same 0.9.1 source with a manifest that keeps WASM single-threaded, so
 # the web consumer builds on stable (gpui-kit-material docs/RELEASING.md).
-gpui-kit = { git = "https://github.com/mizorewww/gpui-kit-material", rev = "98c72b8d183418631b3dcf91064fcece6a96350f" }
+gpui-kit = { git = "https://github.com/mizorewww/gpui-kit-material", rev = "7bbe20dfe51eacb0743797e9afa4f5147e610fac" }

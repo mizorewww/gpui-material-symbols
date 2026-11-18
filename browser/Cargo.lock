@@ -2575,7 +2575,7 @@ dependencies = [
 [[package]]
 name = "gpui-kit"
 version = "0.9.1"
-source = "git+https://github.com/mizorewww/gpui-kit-material?rev=98c72b8d183418631b3dcf91064fcece6a96350f#98c72b8d183418631b3dcf91064fcece6a96350f"
+source = "git+https://github.com/mizorewww/gpui-kit-material?rev=7bbe20dfe51eacb0743797e9afa4f5147e610fac#7bbe20dfe51eacb0743797e9afa4f5147e610fac"
 dependencies = [
  "gpui-base",
  "gpui-component",
