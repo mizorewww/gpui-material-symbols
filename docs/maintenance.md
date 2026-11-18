@@ -34,8 +34,10 @@ and asset-source composition. Record actual results in
 
 ## Updating Longbridge GPUI Kit
 
-The library depends on `gpui-kit` 0.9 from crates.io; the browser and web
-consumers depend on crates.io `gpui-kit` 0.9.1 and `gpui-kit-material` 0.1. In
+The library depends on `gpui-kit` 0.10 from crates.io; the browser and web
+consumers depend on crates.io `gpui-kit` 0.9.1 and `gpui-kit-material` 0.1, and
+on the published Symbols 0.1 (the last release on Kit 0.9) until
+gpui-kit-material moves to Kit 0.10. In
 this workspace crates.io `gpui-kit` is patched to `vendor/gpui-kit` of
 gpui-kit-material at a pinned revision: the same published source with a
 manifest that keeps WebAssembly single-threaded, so `scripts/build-web.sh`
@@ -43,7 +45,7 @@ builds on stable. Move that revision together with the Kit version; the
 vendored copy must keep the version crates.io resolves for the patch to apply.
 Drop the patch once published Kit builds its web platform single-threaded by
 default. A new
-Kit minor release (0.10) is a breaking dependency change and needs a new
+Kit minor release (such as 0.10 → 0.11) is a breaking dependency change and needs a new
 minor release of this crate.
 
 Inspect the Kit APIs this crate uses (`IconNamed`, `component::Icon`, `assets`,

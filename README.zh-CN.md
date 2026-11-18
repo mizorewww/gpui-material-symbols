@@ -25,8 +25,9 @@ cargo run --features showcase --example showcase
 cargo run --no-default-features --features embed-assets --example export -- home rounded > home.svg
 ```
 
-库本身直接基于 crates.io 上的 `gpui-kit` 0.9 构建，不需要任何 patch。浏览器和网页版使用 crates.io
-上的 `gpui-kit-material` 0.1 和 `gpui-kit` 0.9.1。workspace 只把 Symbols patch 到本仓库，并把 `gpui-kit`
+库本身直接基于 crates.io 上的 `gpui-kit` 0.10 构建，不需要任何 patch。浏览器和网页版使用 crates.io
+上的 `gpui-kit-material` 0.1 和 `gpui-kit` 0.9.1，在 gpui-kit-material 升级到 Kit 0.10 之前，同时使用已发布的
+Symbols 0.1（基于 Kit 0.9 的最后一个版本）。它们把 `gpui-kit`
 patch 到 gpui-kit-material 在固定修订中 vendored 的同一 0.9.1 源码：其 manifest 让 WebAssembly 保持单线程，
 而发布版 Kit 以多线程构建 Web 平台，需要 nightly 工具链。
 
@@ -85,10 +86,10 @@ Kit `Button` 中的三种风格、连续变化的填充轴，以及内嵌 SVG �
 
 ```toml
 [dependencies]
-gpui-material-symbols = "0.1"
+gpui-material-symbols = "0.2"
 ```
 
-本库支持 crates.io 上的 [`gpui-kit`](https://crates.io/crates/gpui-kit) 0.9，并以
+本库支持 crates.io 上的 [`gpui-kit`](https://crates.io/crates/gpui-kit) 0.10，并以
 `gpui_material_symbols::kit` 重新导出同一个 Kit。使用这个导出可以保证类型一致，应用无需单独声明 GPUI。
 如果应用对 `gpui-kit` 打了 patch（例如改用 Kit 的 Git `main`），请同时 patch crates.io 来源，
 让两者解析为同一个 Kit。
@@ -117,7 +118,7 @@ gpui-material-symbols = "0.1"
 
 ```toml
 [dependencies]
-gpui-material-symbols = { version = "0.1", default-features = false, features = ["gpui-kit", "outlined"] }
+gpui-material-symbols = { version = "0.2", default-features = false, features = ["gpui-kit", "outlined"] }
 ```
 
 ## 使用
@@ -209,7 +210,7 @@ assert_eq!(odd.to_svg(), Err(Error::UnsupportedVariant));
 
 ```toml
 [dependencies]
-gpui-material-symbols = { version = "0.1", default-features = false, features = ["embed-assets"] }
+gpui-material-symbols = { version = "0.2", default-features = false, features = ["embed-assets"] }
 ```
 
 ```rust

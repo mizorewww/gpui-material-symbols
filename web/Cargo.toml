@@ -15,7 +15,9 @@ crate-type = ["cdylib", "rlib"]
 # Engine and platform types both come from the Kit's selected backend.
 [target.'cfg(target_family = "wasm")'.dependencies]
 gpui-kit = "0.9.1"
-gpui-material-symbols = { path = "..", default-features = false }
+# Pinned to the published 0.1 line while gpui-kit-material is on Kit 0.9; the
+# `renovate/gpui-kit-material` port moves this back to `path = ".."`.
+gpui-material-symbols = { version = "0.1", default-features = false }
 gpui-base = "0.9.1"
 gpui-kit-material = { version = "0.1", default-features = false, features = ["full"] }
 tiny-skia = { version = "0.11", features = ["png-format"] }
@@ -37,8 +39,6 @@ opt-level = 3
 
 # Development only; the published library builds without any patch.
 [patch.crates-io]
-# Material takes Symbols from crates.io; this consumer uses this checkout.
-gpui-material-symbols = { path = ".." }
 # Published Kit 0.9.1 builds its Web platforms multithreaded, which needs a
 # nightly toolchain and cross-origin isolation. gpui-kit-material's vendored Kit
 # is the same 0.9.1 source with a manifest that keeps WASM single-threaded, so
