@@ -1,5 +1,9 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 # The workspace patches crates.io Kit to gpui-kit-material's vendored copy at
 # a pinned Git revision (single-threaded WASM). The `unpatched` job builds the
 # published library from outside the workspace, with no patch.

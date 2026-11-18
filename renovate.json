@@ -1,0 +1,54 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard"
+  ],
+  "timezone": "Asia/Shanghai",
+  "rebaseWhen": "conflicted",
+  "commitBody": "Co-Authored-By: Renovate Bot <bot@renovateapp.com>",
+  "packageRules": [
+    {
+      "description": "Everything except the Kit stack: detect and list on the Dependency Dashboard, open a PR only when ticked there",
+      "matchDepNames": [
+        "!gpui-kit",
+        "!gpui-kit-material"
+      ],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Moved by the ports (.github/upstream-port.md) together with gpui-kit or gpui-kit-material",
+      "matchDepNames": [
+        "gpui-base",
+        "gpui-fast",
+        "gpui-fast-*",
+        "gpui-pre",
+        "gpui-pre-*",
+        "gpui-material-symbols"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Kit and Material releases: one PR each on a fixed branch, which upstream-port.yml hands to Claude Code",
+      "matchDepNames": [
+        "gpui-kit",
+        "gpui-kit-material"
+      ],
+      "branchTopic": "{{depName}}",
+      "additionalBranchPrefix": "",
+      "commitMessageTopic": "{{depName}}",
+      "labels": [
+        "upstream-sync"
+      ],
+      "automerge": false,
+      "separateMajorMinor": false,
+      "separateMinorPatch": false,
+      "schedule": [
+        "at any time"
+      ],
+      "prBodyNotes": [
+        "The **Upstream port** workflow ports this release with Claude Code and pushes the result here. When every check passes it labels the PR `port-ready`; **Upstream land** then merges it once CI is green, and a Kit release is tagged and published."
+      ]
+    }
+  ]
+}

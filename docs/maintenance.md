@@ -17,7 +17,7 @@ cargo test --workspace
 
 The workspace patches `gpui-kit` to gpui-kit-material's vendored copy (a
 pinned Git revision) for the browser and web consumers. The published library
-must also build without it; [ci.yml](ci.yml)'s `unpatched` job checks that from a consumer crate
+must also build without it; [CI](../.github/workflows/ci.yml)'s `unpatched` job checks that from a consumer crate
 outside the workspace, as in [Publishing](#publishing).
 
 The catalog tests check the complete name union, all three fonts' axes, four
@@ -123,5 +123,20 @@ patches.
 
 ## CI
 
-[ci.yml](ci.yml) is a ready GitHub Actions workflow. Move it to
-`.github/workflows/ci.yml` once a token with the `workflow` scope is available.
+[.github/workflows/ci.yml](../.github/workflows/ci.yml) runs on every push to `main` and
+every pull request.
+
+New `gpui-kit` releases are ported and published automatically. `.github/workflows/renovate.yml`
+runs Renovate hourly with the maintainer's token; it opens `renovate/gpui-kit` for a Kit
+release and `renovate/gpui-kit-material` when the browser and web consumers' Material
+release moves. `upstream-port.yml` has Claude Code port the branch
+([.github/upstream-port.md](../.github/upstream-port.md)) and labels it `port-ready` when its
+checks pass. Once CI is green, `upstream-land.yml` merges it and, for a Kit release, tags
+`vX.Y.Z`; `release.yml` then publishes the crates whose version is new with the
+`CARGO_REGISTRY_TOKEN` secret, makes a GitHub release and starts gpui-kit-material's port of
+the same Kit.
+
+New issues get an automated first reply, and pull requests an automated review, under the
+maintainer's account (`MAINTAINER_TOKEN`). A contributor's pull request is closed when it is
+not needed, and otherwise finished by us and merged once CI passes. Changes under `.github/`
+are never merged automatically.
