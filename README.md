@@ -29,10 +29,9 @@ cargo run --no-default-features --features embed-assets --example export -- home
 ```
 
 The library itself builds against `gpui-kit` 0.10 from crates.io with no
-patches. The browser and web consumers take `gpui-kit-material` 0.1 and
-`gpui-kit` 0.9.1 from crates.io, and with them the published Symbols 0.1 (the
-last release on Kit 0.9) until gpui-kit-material moves to Kit 0.10. They patch
-`gpui-kit` to gpui-kit-material's vendored copy of the same 0.9.1 source at
+patches. The browser and web consumers take `gpui-kit-material` 0.2 and
+`gpui-kit` 0.10.0 from crates.io. The workspace patches Symbols to this checkout,
+and `gpui-kit` to gpui-kit-material's vendored copy of the same 0.10.0 source at
 a pinned revision, whose manifest keeps WebAssembly single-threaded: published
 Kit builds its web platform multithreaded, which needs a nightly toolchain.
 

@@ -5,12 +5,11 @@ https://github.com/longbridge/gpui-kit.
 
 - The published root library depends on `gpui-kit` from crates.io (0.10) and
   must build without any `[patch]`; commit Cargo.lock. The `browser` and `web`
-  consumers (`publish = false`) use crates.io `gpui-kit-material` 0.1 and
-  `gpui-kit` 0.9.1. Each is a Cargo workspace of its own with its own
+  consumers (`publish = false`) use crates.io `gpui-kit-material` 0.2 and
+  `gpui-kit` 0.10.0. Each is a Cargo workspace of its own with its own
   Cargo.lock, so the root can move to a new Kit before Material does (one graph
-  cannot hold two Kit releases). Until gpui-kit-material moves to Kit 0.10 they use the
-  published Symbols 0.1 (the last release on Kit 0.9) instead of this checkout,
-  and patch only `gpui-kit` (to gpui-kit-material's vendored 0.9.1 at a pinned revision, which
+  cannot hold two Kit releases). They patch only Symbols (to this checkout) and
+  `gpui-kit` (to gpui-kit-material's vendored 0.10.0 at a pinned revision, which
   keeps WASM single-threaded so the web build stays on stable).
 - The fonts and SVG pack live in the dependency-free data crates under
   `crates/` (crates.io limits each package to 10 MB compressed); keep each
