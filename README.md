@@ -19,7 +19,7 @@ git clone https://github.com/mizorewww/gpui-material-symbols
 cd gpui-material-symbols
 
 # Icon browser for the whole catalog (built with gpui-kit-material)
-cargo run -p gpui-material-symbols-browser --bin material_symbols
+cargo run --manifest-path browser/Cargo.toml --bin material_symbols
 
 # Material Symbols in Longbridge GPUI Kit components
 cargo run --features showcase --example showcase
@@ -39,10 +39,10 @@ The browser also builds for the web; see the [web preview guide](docs/web.md).
 
 ## Screenshots
 
-The native browser is the independent `gpui-material-symbols-browser` workspace
-package. Its default `material-browser` feature embeds the assets. The former
+The native browser is the `gpui-material-symbols-browser` package, a Cargo workspace
+of its own in `browser/`. Its default `material-browser` feature embeds the assets. The former
 root command `--features material-browser --example material_symbols` is replaced
-by `-p gpui-material-symbols-browser --bin material_symbols`; the root library no
+by `--manifest-path browser/Cargo.toml --bin material_symbols`; the root library no
 longer depends on Material, which can now consume Symbols without a reverse edge.
 The `showcase` and `export` examples keep their existing entry points.
 

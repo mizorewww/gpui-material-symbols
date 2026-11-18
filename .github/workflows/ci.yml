@@ -21,6 +21,8 @@ jobs:
         run: |
           python3 scripts/sync_assets.py --verify
           cargo fmt --all -- --check
+          cargo fmt --all --manifest-path browser/Cargo.toml -- --check
+          cargo fmt --all --manifest-path web/Cargo.toml -- --check
           cargo test --locked --no-default-features --features embed-assets
           cargo test --locked --no-default-features
           cargo test --locked --no-default-features --features outlined --lib
@@ -95,8 +97,7 @@ jobs:
         run: |
           # Packages and verifies all five together; the root resolves the
           # data crates from the freshly packaged copies, published or not.
-          cargo package --workspace \
-            --exclude gpui-material-symbols-browser --exclude gpui-material-symbols-web
+          cargo package --workspace
           for f in $(find target/package -name "*.crate"); do
             size=$(wc -c < "$f")
             echo "$f: $size bytes"
@@ -115,5 +116,7 @@ jobs:
         run: |
           cargo test --locked --test integration
           cargo check --locked --features showcase --example showcase
-          cargo test --locked -p gpui-material-symbols-browser --bin material_symbols
+          cargo test --locked --manifest-path browser/Cargo.toml --bin material_symbols
           cargo clippy --locked --workspace --all-targets -- -D warnings
+          cargo clippy --locked --manifest-path browser/Cargo.toml --all-targets -- -D warnings
+          cargo clippy --locked --manifest-path web/Cargo.toml --all-targets -- -D warnings

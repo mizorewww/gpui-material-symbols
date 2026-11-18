@@ -10,10 +10,16 @@ cargo test --no-default-features            # assets supplied at runtime
 cargo test --no-default-features --features outlined --lib  # one style embedded, others supplied
 cargo test --test integration               # Longbridge GPUI Kit slots and assets
 cargo check --features showcase --example showcase
-cargo test -p gpui-material-symbols-browser --bin material_symbols
+cargo test --manifest-path browser/Cargo.toml --bin material_symbols
 cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy --manifest-path browser/Cargo.toml --all-targets -- -D warnings
 cargo test --workspace
 ```
+
+`browser/` and `web/` are workspaces of their own, each with its own Cargo.lock: they
+follow the published gpui-kit-material, which can lag a Kit release the root already
+supports, and one Cargo graph cannot hold two Kit releases (`gpui-kit-assets` declares a
+`links` key).
 
 The workspace patches `gpui-kit` to gpui-kit-material's vendored copy (a
 pinned Git revision) for the browser and web consumers. The published library
@@ -91,7 +97,7 @@ python3 scripts/update-symbol-catalog.py
 ## Screenshots
 
 ```sh
-cargo run -p gpui-material-symbols-browser \
+cargo run --manifest-path browser/Cargo.toml \
   --bin material_symbols -- --capture target/captures
 cargo run --features showcase-capture --example showcase -- \
   --capture docs/screenshots/showcase.png

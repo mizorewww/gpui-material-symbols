@@ -18,10 +18,10 @@ if [[ "$(wasm-bindgen --version 2>/dev/null)" != "wasm-bindgen 0.2.129" ]]; then
 fi
 command -v brotli >/dev/null || { echo "Install brotli" >&2; exit 1; }
 
-cargo build --locked --release -p gpui-material-symbols-web --target wasm32-unknown-unknown
+cargo build --locked --release --manifest-path web/Cargo.toml --target wasm32-unknown-unknown
 bindgen="$(mktemp -d)"
 trap 'rm -rf "$bindgen"' EXIT
-wasm-bindgen target/wasm32-unknown-unknown/release/gpui_material_symbols_web.wasm \
+wasm-bindgen web/target/wasm32-unknown-unknown/release/gpui_material_symbols_web.wasm \
   --target web --no-typescript --out-dir "$bindgen"
 
 python3 -I - "$bindgen" <<'PY'

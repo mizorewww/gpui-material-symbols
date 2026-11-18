@@ -5,9 +5,9 @@ library has no dependency on Material or this package, allowing Material to
 consume Symbols without a reverse dependency edge.
 
 ```sh
-cargo run -p gpui-material-symbols-browser --bin material_symbols
-cargo test -p gpui-material-symbols-browser --bin material_symbols
-cargo run -p gpui-material-symbols-browser --bin material_symbols -- --capture target/captures
+cargo run --manifest-path browser/Cargo.toml --bin material_symbols
+cargo test --manifest-path browser/Cargo.toml --bin material_symbols
+cargo run --manifest-path browser/Cargo.toml --bin material_symbols -- --capture target/captures
 ```
 
 The default `material-browser` feature embeds Symbols assets for offline native

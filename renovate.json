@@ -29,6 +29,17 @@
       "enabled": false
     },
     {
+      "description": "The browser and web consumers take their Kit from gpui-kit-material; the gpui-kit-material port moves it",
+      "matchFileNames": [
+        "browser/Cargo.toml",
+        "web/Cargo.toml"
+      ],
+      "matchDepNames": [
+        "gpui-kit"
+      ],
+      "enabled": false
+    },
+    {
       "description": "Kit and Material releases: one PR each on a fixed branch, which upstream-port.yml hands to Claude Code",
       "matchDepNames": [
         "gpui-kit",

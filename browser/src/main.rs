@@ -1,6 +1,6 @@
 //! A native Material Symbols browser built with gpui-kit-material components.
 //!
-//! `cargo run -p gpui-material-symbols-browser --bin material_symbols`
+//! `cargo run --manifest-path browser/Cargo.toml --bin material_symbols`
 //!
 //! The `web` crate builds the same browser for the web with `run_web`.
 #[cfg(not(target_family = "wasm"))]

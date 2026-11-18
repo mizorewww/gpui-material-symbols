@@ -17,9 +17,9 @@ The Web package disables default features on both Symbols and Material,
 selecting only Material's `full` component set. This
 keeps Material's default `embedded-symbols` feature from embedding the complete
 font/SVG pack and bypassing the browser's on-demand asset loader. Build the Web
-package explicitly with `-p gpui-material-symbols-web` (as `scripts/build-web.sh`
-does). Building every workspace package for WASM can unify the native browser's
-asset-embedding feature into the Web graph; it is not the lean Web build.
+package from its own workspace with `--manifest-path web/Cargo.toml` (as
+`scripts/build-web.sh` does); it is separate from `browser/`, so the native browser's
+asset-embedding feature never unifies into the Web graph.
 
 On load the page asks for a GitHub star in a dialog (`web/www/index.html`).
 Choosing "Star on GitHub" or "Don't show this again" stops it for that browser

@@ -2575,7 +2575,8 @@ dependencies = [
 [[package]]
 name = "gpui-kit"
 version = "0.9.1"
-source = "git+https://github.com/mizorewww/gpui-kit-material?rev=98c72b8d183418631b3dcf91064fcece6a96350f#98c72b8d183418631b3dcf91064fcece6a96350f"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aca1dedfea73645b60b5893c9c16de0b1396f2cf4251d19e5f03a295c1b61879"
 dependencies = [
  "gpui-base",
  "gpui-component",
@@ -2606,30 +2607,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gpui-kit-material"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f78530627071542d1e5a9ca7bc66b8fab8ad29bf164f899201484a540244150f"
-dependencies = [
- "chrono",
- "gpui-base",
- "gpui-kit",
- "gpui-kit-material-color",
- "gpui-material-symbols",
- "log",
- "web-time",
-]
-
-[[package]]
-name = "gpui-kit-material-color"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "347afde74708c3ca2bdd000473ce1507fb06349f5fa6ca87460c99a5b845106f"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "gpui-material-symbols"
 version = "0.1.0"
 dependencies = [
@@ -2642,18 +2619,6 @@ dependencies = [
  "resvg 0.46.0",
  "roxmltree 0.21.2",
  "ttf-parser",
-]
-
-[[package]]
-name = "gpui-material-symbols-browser"
-version = "0.1.0"
-dependencies = [
- "gpui-base",
- "gpui-kit",
- "gpui-kit-material",
- "gpui-material-symbols",
- "resvg 0.46.0",
- "tiny-skia",
 ]
 
 [[package]]
@@ -2671,22 +2636,6 @@ version = "0.1.0"
 [[package]]
 name = "gpui-material-symbols-supplemental"
 version = "0.1.0"
-
-[[package]]
-name = "gpui-material-symbols-web"
-version = "0.1.0"
-dependencies = [
- "gpui-base",
- "gpui-kit",
- "gpui-kit-material",
- "gpui-material-symbols",
- "js-sys",
- "log",
- "resvg 0.46.0",
- "tiny-skia",
- "wasm-bindgen",
- "wasm-bindgen-futures",
-]
 
 [[package]]
 name = "gpui-pre"

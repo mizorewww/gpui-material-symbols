@@ -16,7 +16,7 @@ git clone https://github.com/mizorewww/gpui-material-symbols
 cd gpui-material-symbols
 
 # 全部图标的浏览器（基于 gpui-kit-material）
-cargo run -p gpui-material-symbols-browser --bin material_symbols
+cargo run --manifest-path browser/Cargo.toml --bin material_symbols
 
 # 在 Longbridge GPUI Kit 组件中使用 Material Symbols
 cargo run --features showcase --example showcase
@@ -34,10 +34,10 @@ patch 到 gpui-kit-material 在固定修订中 vendored 的同一 0.9.1 源码�
 
 ## 截图
 
-原生浏览器属于独立的 workspace package `gpui-material-symbols-browser`，
+原生浏览器是 `gpui-material-symbols-browser` package，位于 `browser/`，自成一个 Cargo workspace，
 默认启用该 package 的 `material-browser` feature 并嵌入图标资源。
 原根包命令 `--features material-browser --example material_symbols` 已替换为
-`-p gpui-material-symbols-browser --bin material_symbols`。根 symbols 库不再反向
+`--manifest-path browser/Cargo.toml --bin material_symbols`。根 symbols 库不再反向
 依赖 Material，因此 Material 可以使用 Symbols 而不形成依赖环。
 `showcase` 和 `export` 示例的入口保持不变。
 

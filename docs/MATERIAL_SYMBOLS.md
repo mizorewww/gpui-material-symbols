@@ -4,13 +4,13 @@ A native GPUI icon browser for this crate's complete catalog, built with
 components from [`gpui-kit-material`](https://github.com/mizorewww/gpui-kit-material)
 on the same `gpui-pre` backend as Longbridge GPUI Kit. No WebView is used.
 
-The native executable lives in the independent `gpui-material-symbols-browser`
-workspace package (`browser/`). Its default `material-browser` feature embeds
+The native executable lives in the `gpui-material-symbols-browser` package
+(`browser/`), a Cargo workspace of its own. Its default `material-browser` feature embeds
 assets; it is no longer a feature or example target of the root symbols library.
 This keeps the consumer → Material → symbols dependency direction acyclic.
 
 ```sh
-cargo run -p gpui-material-symbols-browser --bin material_symbols
+cargo run --manifest-path browser/Cargo.toml --bin material_symbols
 ```
 
 ![Icon browser in the light theme](screenshots/material-symbols-light.png)
@@ -67,9 +67,9 @@ Behavior and accessibility come from GPUI Base. Plain `div`s are layout only.
 ## Verification and captures
 
 ```sh
-cargo clippy -p gpui-material-symbols-browser --all-targets -- -D warnings
-cargo test -p gpui-material-symbols-browser --bin material_symbols
-cargo run -p gpui-material-symbols-browser --bin material_symbols -- --capture target/captures
+cargo clippy --manifest-path browser/Cargo.toml --all-targets -- -D warnings
+cargo test --manifest-path browser/Cargo.toml --bin material_symbols
+cargo run --manifest-path browser/Cargo.toml --bin material_symbols -- --capture target/captures
 ```
 
 The capture command renders the light, dark, light and dark details, and
