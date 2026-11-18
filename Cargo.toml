@@ -7,7 +7,7 @@ exclude = ["browser", "web"]
 
 [package]
 name = "gpui-material-symbols"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.98"
 license = "Apache-2.0"
@@ -57,7 +57,7 @@ showcase-capture = ["showcase", "gpui-kit/test-support"]
 [dependencies]
 ttf-parser = { version = "0.25", default-features = false, features = ["std", "variable-fonts"] }
 anyhow = { version = "1", optional = true }
-gpui-kit = { version = "0.9", optional = true }
+gpui-kit = { version = "0.10", optional = true }
 # The data crates hold exactly the files this version's catalog indexes.
 gpui-material-symbols-outlined = { version = "=0.1.0", path = "crates/gpui-material-symbols-outlined", optional = true }
 gpui-material-symbols-rounded = { version = "=0.1.0", path = "crates/gpui-material-symbols-rounded", optional = true }
