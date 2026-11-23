@@ -3,6 +3,13 @@
 All notable changes to `gpui-material-symbols` and its data crates are
 recorded here. The project follows [Semantic Versioning](https://semver.org/).
 
+## 0.3.0 — 2026-11-23
+
+- Longbridge GPUI Kit 0.11: the `gpui-kit` feature now depends on `gpui-kit`
+  0.11 from crates.io (previously 0.10), a breaking change for applications
+  that share Kit types with this crate. The catalog, assets and the crate's
+  own API are unchanged; the data crates stay at 0.1.0.
+
 ## 0.2.0 — 2026-11-18
 
 - Longbridge GPUI Kit 0.10: the `gpui-kit` feature now depends on `gpui-kit`

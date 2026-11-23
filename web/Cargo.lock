@@ -2424,6 +2424,8 @@ checksum = "94c4246166376753d28ba209629c4176839820bb8ca4c946dd9c0c2eee565cfc"
 [[package]]
 name = "gpui-material-symbols"
 version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d413397a08767008379e6ed9e4aa1fab79df5119ff715e8ad4be5cd992e3390b"
 dependencies = [
  "anyhow",
  "gpui-kit",

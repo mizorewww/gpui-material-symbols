@@ -28,10 +28,11 @@ cargo run --features showcase --example showcase
 cargo run --no-default-features --features embed-assets --example export -- home rounded > home.svg
 ```
 
-The library itself builds against `gpui-kit` 0.10 from crates.io with no
+The library itself builds against `gpui-kit` 0.11 from crates.io with no
 patches. The browser and web consumers take `gpui-kit-material` 0.2 and
-`gpui-kit` 0.10.0 from crates.io. The workspace patches Symbols to this checkout,
-and `gpui-kit` to gpui-kit-material's vendored copy of the same 0.10.0 source at
+`gpui-kit` 0.10.0 from crates.io, and with them the published Symbols 0.2 (the
+last release on Kit 0.10) until gpui-kit-material moves to Kit 0.11. They patch
+`gpui-kit` to gpui-kit-material's vendored copy of the same 0.10.0 source at
 a pinned revision, whose manifest keeps WebAssembly single-threaded: published
 Kit builds its web platform multithreaded, which needs a nightly toolchain.
 
@@ -95,10 +96,10 @@ SVG icon.
 
 ```toml
 [dependencies]
-gpui-material-symbols = "0.2"
+gpui-material-symbols = "0.3"
 ```
 
-The crate supports [`gpui-kit`](https://crates.io/crates/gpui-kit) 0.10 from
+The crate supports [`gpui-kit`](https://crates.io/crates/gpui-kit) 0.11 from
 crates.io and re-exports that exact Kit as `gpui_material_symbols::kit`. Using
 the re-export keeps the types consistent; you do not need to declare GPUI
 yourself. If your application patches `gpui-kit` (for example to Kit's Git
@@ -130,7 +131,7 @@ For example, embed only the Outlined style:
 
 ```toml
 [dependencies]
-gpui-material-symbols = { version = "0.2", default-features = false, features = ["gpui-kit", "outlined"] }
+gpui-material-symbols = { version = "0.3", default-features = false, features = ["gpui-kit", "outlined"] }
 ```
 
 ## Usage
@@ -227,7 +228,7 @@ assert_eq!(odd.to_svg(), Err(Error::UnsupportedVariant));
 
 ```toml
 [dependencies]
-gpui-material-symbols = { version = "0.2", default-features = false, features = ["embed-assets"] }
+gpui-material-symbols = { version = "0.3", default-features = false, features = ["embed-assets"] }
 ```
 
 ```rust

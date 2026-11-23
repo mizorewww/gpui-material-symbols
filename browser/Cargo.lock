@@ -2635,6 +2635,8 @@ dependencies = [
 [[package]]
 name = "gpui-material-symbols"
 version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d413397a08767008379e6ed9e4aa1fab79df5119ff715e8ad4be5cd992e3390b"
 dependencies = [
  "anyhow",
  "gpui-kit",
@@ -2660,18 +2662,26 @@ dependencies = [
 [[package]]
 name = "gpui-material-symbols-outlined"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f621abc870ea487254ea6aebb6aaa8d6ac883626a7f80a05b45af78c8356e6a"
 
 [[package]]
 name = "gpui-material-symbols-rounded"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "124f5f8f97c034ca4666123891d2869625523770eae849958614594370068706"
 
 [[package]]
 name = "gpui-material-symbols-sharp"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa3ab4331a112b75185d53d45110e82811f958506e43b62afcfe64e447c53276"
 
 [[package]]
 name = "gpui-material-symbols-supplemental"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d384c2022f21c457cdbd07e5c73bc9924d39ec8572d0f060dec035291f5e1513"
 
 [[package]]
 name = "gpui-pre"
