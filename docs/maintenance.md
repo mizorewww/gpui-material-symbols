@@ -34,9 +34,10 @@ and asset-source composition. Record actual results in
 
 ## Updating Longbridge GPUI Kit
 
-The library depends on `gpui-kit` 0.10 from crates.io; the browser and web
+The library depends on `gpui-kit` 0.11 from crates.io; the browser and web
 consumers depend on crates.io `gpui-kit` 0.10.0 and `gpui-kit-material` 0.2, and
-on this checkout of Symbols. In
+on the published Symbols 0.2 (the last release on Kit 0.10) until
+gpui-kit-material moves to Kit 0.11. In
 this workspace crates.io `gpui-kit` is patched to `vendor/gpui-kit` of
 gpui-kit-material at a pinned revision: the same published source with a
 manifest that keeps WebAssembly single-threaded, so `scripts/build-web.sh`
