@@ -12,12 +12,15 @@
   ],
   "packageRules": [
     {
-      "description": "Everything except the Kit stack: detect and list on the Dependency Dashboard, open a PR only when ticked there",
+      "description": "Everything except the Kit stack: detect and list on the Dependency Dashboard, open a PR only when ticked there, and merge it once CI passes",
       "matchDepNames": [
         "!gpui-kit",
         "!gpui-kit-material"
       ],
-      "dependencyDashboardApproval": true
+      "dependencyDashboardApproval": true,
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": false
     },
     {
       "description": "Moved by the ports (.github/upstream-port.md) together with gpui-kit or gpui-kit-material",
