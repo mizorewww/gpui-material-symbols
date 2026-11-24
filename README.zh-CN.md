@@ -26,9 +26,8 @@ cargo run --no-default-features --features embed-assets --example export -- home
 ```
 
 库本身直接基于 crates.io 上的 `gpui-kit` 0.11 构建，不需要任何 patch。浏览器和网页版使用 crates.io
-上的 `gpui-kit-material` 0.2 和 `gpui-kit` 0.10.0，并在 gpui-kit-material 迁移到 Kit 0.11 之前随之使用已发布的
-Symbols 0.2（Kit 0.10 上的最后一个版本），而不是本仓库。它们只把 `gpui-kit`
-patch 到 gpui-kit-material 在固定修订中 vendored 的同一 0.10.0 源码：其 manifest 让 WebAssembly 保持单线程，
+上的 `gpui-kit-material` 0.3 和 `gpui-kit` 0.11.0，并使用本仓库中的库。它们把 `gpui-kit`
+patch 到 gpui-kit-material 在固定修订中 vendored 的同一 0.11.0 源码：其 manifest 让 WebAssembly 保持单线程，
 而发布版 Kit 以多线程构建 Web 平台，需要 nightly 工具链。
 
 图标浏览器也可以构建为网页版，见 [网页预览说明](docs/web.md)。
