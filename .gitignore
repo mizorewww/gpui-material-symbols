@@ -3,3 +3,4 @@
 /browser/target/
 /web/target/
 .DS_Store
+__pycache__/
